@@ -86,17 +86,20 @@
 }
 
 .swapButton {
-  background: none;
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  color: var(--text-3);
-  font-size: 0.72rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
+  color: var(--text-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
   cursor: pointer;
   flex-shrink: 0;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
-.swapButton:active { background: var(--surface); }
+.swapButton:active { background: var(--border); }
 
 .suggestion {
   display: flex;
@@ -156,15 +159,19 @@
 .setUnit { font-size: 0.75rem; color: var(--text-3); flex: 1; }
 
 .doneButton {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 2px solid var(--border);
   background: none;
-  border: 1.5px solid var(--border);
   color: var(--text-3);
-  font-size: 0.78rem;
-  padding: 0.25rem 0.45rem;
-  border-radius: 6px;
+  font-size: 1rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  line-height: 1;
+  transition: border-color 0.15s, background 0.15s;
 }
 
 .doneButton.active {

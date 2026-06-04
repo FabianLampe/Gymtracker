@@ -266,7 +266,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
                 <button
                   className={styles.swapButton}
                   onClick={() => setPickerMode({ type: 'swap', exIdx, oldExerciseId: ex.exerciseId })}
-                >↔</button>
+                >⇄ Tauschen</button>
               </div>
 
               {suggestions[ex.exerciseId] && (

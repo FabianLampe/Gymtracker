@@ -59,6 +59,12 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
     onSelect(ex.id)
   }
 
+  function cancelCreate() {
+    setCreating(false)
+    setNewName('')
+    setNewGroup('')
+  }
+
   return (
     <div className={styles.overlay}>
       <header className={styles.header}>
@@ -74,6 +80,7 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
         autoFocus={!creating}
       />
 
+      {/* Scrollbare Liste */}
       <div className={styles.list}>
         {groups.map(group => (
           <div key={group}>
@@ -89,12 +96,15 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
             ))}
           </div>
         ))}
+        <div style={{ height: '1rem' }} />
+      </div>
 
-        {/* ── Neue Übung anlegen ──────────────────────────────────── */}
+      {/* Fixe Fußleiste — immer sichtbar */}
+      <div className={styles.footer}>
         {!creating ? (
           <button
             className={styles.createButton}
-            onClick={() => { setCreating(true); setSearch('') }}
+            onClick={() => setCreating(true)}
           >
             + Neue Übung anlegen
           </button>
@@ -107,7 +117,7 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
               onChange={e => setNewName(e.target.value)}
               placeholder="Name der Übung"
               autoFocus
-              onKeyDown={e => e.key === 'Escape' && setCreating(false)}
+              onKeyDown={e => e.key === 'Escape' && cancelCreate()}
             />
             <input
               className={styles.createInput}
@@ -117,7 +127,7 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
               list="picker-groups"
               onKeyDown={e => {
                 if (e.key === 'Enter') handleCreate()
-                if (e.key === 'Escape') setCreating(false)
+                if (e.key === 'Escape') cancelCreate()
               }}
             />
             <datalist id="picker-groups">
@@ -131,10 +141,7 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
               >
                 ✓ Anlegen & hinzufügen
               </button>
-              <button
-                className={styles.createCancel}
-                onClick={() => { setCreating(false); setNewName(''); setNewGroup('') }}
-              >
+              <button className={styles.createCancel} onClick={cancelCreate}>
                 Abbrechen
               </button>
             </div>
