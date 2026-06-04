@@ -4,6 +4,7 @@ export interface Exercise {
   name: string
   muscleGroup: string
   source: 'seeded' | 'custom'
+  defaultRestSeconds: number  // Schoenfeld 2016: 180 Verbund, 90 Isolation, 60 Bauch
 }
 
 // Plan-Übung — Einstellungen je Übung pro Plan (gleiche Übung, andere Werte in anderem Plan möglich)
@@ -15,6 +16,7 @@ export interface PlanExercise {
   stepWeightKg: number  // Schrittweite (Default 2.5)
   startWeightKg: number
   startReps: number
+  restSeconds: number   // Satzpause in Sekunden (Default aus Übungskatalog)
 }
 
 // Plan — lebende Liste, Edits überschreiben ihn

@@ -6,6 +6,11 @@ import styles from './ExerciseCatalog.module.css'
 
 const GROUP_ORDER = ['Brust', 'Rücken', 'Schultern', 'Bizeps', 'Trizeps', 'Beine', 'Bauch']
 
+const MUSCLE_COLORS: Record<string, string> = {
+  'Brust': '#ef4444', 'Rücken': '#3b82f6', 'Schultern': '#f59e0b',
+  'Bizeps': '#8b5cf6', 'Trizeps': '#ec4899', 'Beine': '#22c55e', 'Bauch': '#06b6d4',
+}
+
 function sortedGroups(groups: string[]): string[] {
   return [...groups].sort((a, b) => {
     const ai = GROUP_ORDER.indexOf(a)
@@ -156,11 +161,17 @@ export function ExerciseCatalog({ onViewProgression }: Props) {
                   </div>
                 ) : (
                   <>
-                    <span
-                      className={styles.exerciseName}
+                    <div
+                      className={styles.exerciseNameRow}
                       onClick={() => onViewProgression(ex.id)}
                       style={{ cursor: 'pointer' }}
-                    >{ex.name} ›</span>
+                    >
+                      <span
+                        className={styles.muscleGroupDot}
+                        style={{ background: MUSCLE_COLORS[ex.muscleGroup] ?? '#64748b' }}
+                      />
+                      <span className={styles.exerciseName}>{ex.name} ›</span>
+                    </div>
                     {ex.source === 'custom' ? (
                       <div className={styles.actions}>
                         <button

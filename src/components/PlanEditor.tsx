@@ -39,7 +39,10 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
 
   async function handleAddExercise(exerciseId: string) {
     if (!plan) return
-    const pe = createPlanExercise(exerciseId, plan.exercises.length)
+    const ex = exercises.find(e => e.id === exerciseId)
+    const pe = createPlanExercise(exerciseId, plan.exercises.length, {
+      restSeconds: ex?.defaultRestSeconds ?? 90,
+    })
     await savePlan(addExerciseToPlan(plan, pe))
     setShowPicker(false)
   }
@@ -181,6 +184,19 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
                   defaultValue={pe.stepWeightKg}
                   key={`${pe.exerciseId}-stepWeightKg`}
                   onBlur={e => handleSetting(pe.exerciseId, 'stepWeightKg', e.target.value)}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Pause (s)</span>
+                <input
+                  className={styles.fieldInput}
+                  type="number"
+                  min={10}
+                  step={10}
+                  defaultValue={pe.restSeconds}
+                  key={`${pe.exerciseId}-restSeconds`}
+                  onBlur={e => handleSetting(pe.exerciseId, 'restSeconds', e.target.value)}
                 />
               </div>
             </div>

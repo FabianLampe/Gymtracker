@@ -22,7 +22,8 @@ type AppScreen =
   | { name: 'settings' }
 
 function screenToTab(screen: AppScreen): Tab {
-  if (screen.name === 'exercise-catalog' || screen.name === 'progression') return 'exercises'
+  if (screen.name === 'exercise-catalog') return 'exercises'
+  if (screen.name === 'progression') return 'progression'
   if (screen.name === 'history' || screen.name === 'einheit-editor') return 'history'
   return 'plans'
 }
@@ -30,6 +31,7 @@ function screenToTab(screen: AppScreen): Tab {
 const TAB_SCREENS: Record<Tab, AppScreen> = {
   plans: { name: 'plan-list' },
   exercises: { name: 'exercise-catalog' },
+  progression: { name: 'progression' },
   history: { name: 'history' },
 }
 

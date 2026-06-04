@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "exercises": [],
+  "plans": [
+    {
+      "id": "sim-push",
+      "name": "Push",
+      "exercises": [
+        {
+          "exerciseId": "seed-bankdruecken",
+          "order": 0,
+          "targetReps": 10,
+          "sets": 3,
+          "stepWeightKg": 2.5,
+          "startWeightKg": 82.5,
+          "startReps": 10
+        },
+        {
+          "exerciseId": "seed-schulterdruecken",
+          "order": 1,
+          "targetReps": 10,
+          "sets": 3,
+          "stepWeightKg": 2.5,
+          "startWeightKg": 42.5,
+          "startReps": 10
+        },
+        {
+          "exerciseId": "seed-trizepsdruecken",
+          "order": 2,
+          "targetReps": 12,
+          "sets": 3,
+          "stepWeightKg": 2.5,
+          "startWeightKg": 27.5,
+          "startReps": 12
+        }
+      ]
+    },
+    {
+      "id": "sim-pull",
+      "name": "Pull",
+      "exercises": [
+        {
+          "exerciseId": "seed-klimmzuege",
+          "order": 0,
+          "targetReps": 8,
+          "sets": 3,
+          "stepWeightKg": 2.5,
+          "startWeightKg": 2.5,
+          "startReps": 8
+        },
+        {
+          "exerciseId": "seed-kh-rudern",
+          "order": 1,
+          "targetReps": 10,
+          "sets": 3,
+          "stepWeightKg": 2.5,
+          "startWeightKg": 37.5,
+          "startReps": 10
+        },
+        {
+          "exerciseId": "seed-latzug",
+          "order": 2,
+          "targetReps": 10,
+          "sets": 3,
+          "stepWeightKg": 2.5,
+          "startWeightKg": 60,
+          "startReps": 10
+        }
+      ]
+    }
+  ],
+  "einheiten": [
+    {
+      "id": "sim-e1",
+      "planId": "sim-push",
+      "date": "2026-05-29",
+      "exercises": [
+        {
+          "exerciseId": "seed-bankdruecken",
+          "sets": [
+            { "reps": 10, "weightKg": 80 },
+            { "reps": 10, "weightKg": 80 },
+            { "reps":  9, "weightKg": 80 }
+          ]
+        },
+        {
+          "exerciseId": "seed-schulterdruecken",
+          "sets": [
+            { "reps": 10, "weightKg": 40 },
+            { "reps":  9, "weightKg": 40 },
+            { "reps":  8, "weightKg": 40 }
+          ]
+        },
+        {
+          "exerciseId": "seed-trizepsdruecken",
+          "sets": [
+            { "reps": 12, "weightKg": 25 },
+            { "reps": 11, "weightKg": 25 },
+            { "reps": 10, "weightKg": 25 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sim-e2",
+      "planId": "sim-pull",
+      "date": "2026-05-30",
+      "exercises": [
+        {
+          "exerciseId": "seed-klimmzuege",
+          "sets": [
+            { "reps": 8, "weightKg": 0 },
+            { "reps": 7, "weightKg": 0 },
+            { "reps": 6, "weightKg": 0 }
+          ]
+        },
+        {
+          "exerciseId": "seed-kh-rudern",
+          "sets": [
+            { "reps": 10, "weightKg": 35 },
+            { "reps": 10, "weightKg": 35 },
+            { "reps":  9, "weightKg": 35 }
+          ]
+        },
+        {
+          "exerciseId": "seed-latzug",
+          "sets": [
+            { "reps": 10, "weightKg": 57.5 },
+            { "reps": 10, "weightKg": 57.5 },
+            { "reps":  9, "weightKg": 57.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sim-e3",
+      "planId": "sim-push",
+      "date": "2026-05-31",
+      "exercises": [
+        {
+          "exerciseId": "seed-bankdruecken",
+          "sets": [
+            { "reps": 10, "weightKg": 80 },
+            { "reps": 10, "weightKg": 80 },
+            { "reps": 10, "weightKg": 80 }
+          ]
+        },
+        {
+          "exerciseId": "seed-schulterdruecken",
+          "sets": [
+            { "reps": 10, "weightKg": 40 },
+            { "reps": 10, "weightKg": 40 },
+            { "reps":  9, "weightKg": 40 }
+          ]
+        },
+        {
+          "exerciseId": "seed-trizepsdruecken",
+          "sets": [
+            { "reps": 12, "weightKg": 25 },
+            { "reps": 12, "weightKg": 25 },
+            { "reps": 11, "weightKg": 25 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sim-e4",
+      "planId": "sim-pull",
+      "date": "2026-06-01",
+      "exercises": [
+        {
+          "exerciseId": "seed-klimmzuege",
+          "sets": [
+            { "reps": 8, "weightKg": 0 },
+            { "reps": 8, "weightKg": 0 },
+            { "reps": 7, "weightKg": 0 }
+          ]
+        },
+        {
+          "exerciseId": "seed-kh-rudern",
+          "sets": [
+            { "reps": 10, "weightKg": 35 },
+            { "reps": 10, "weightKg": 35 },
+            { "reps": 10, "weightKg": 35 }
+          ]
+        },
+        {
+          "exerciseId": "seed-latzug",
+          "sets": [
+            { "reps": 10, "weightKg": 57.5 },
+            { "reps": 10, "weightKg": 57.5 },
+            { "reps": 10, "weightKg": 57.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sim-e5",
+      "planId": "sim-push",
+      "date": "2026-06-02",
+      "exercises": [
+        {
+          "exerciseId": "seed-bankdruecken",
+          "sets": [
+            { "reps": 10, "weightKg": 80 },
+            { "reps": 10, "weightKg": 80 },
+            { "reps": 10, "weightKg": 80 }
+          ]
+        },
+        {
+          "exerciseId": "seed-schulterdruecken",
+          "sets": [
+            { "reps": 10, "weightKg": 40 },
+            { "reps": 10, "weightKg": 40 },
+            { "reps": 10, "weightKg": 40 }
+          ]
+        },
+        {
+          "exerciseId": "seed-trizepsdruecken",
+          "sets": [
+            { "reps": 12, "weightKg": 25 },
+            { "reps": 12, "weightKg": 25 },
+            { "reps": 12, "weightKg": 25 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sim-e6",
+      "planId": "sim-pull",
+      "date": "2026-06-03",
+      "exercises": [
+        {
+          "exerciseId": "seed-klimmzuege",
+          "sets": [
+            { "reps": 8, "weightKg": 0 },
+            { "reps": 8, "weightKg": 0 },
+            { "reps": 8, "weightKg": 0 }
+          ]
+        },
+        {
+          "exerciseId": "seed-kh-rudern",
+          "sets": [
+            { "reps": 10, "weightKg": 35 },
+            { "reps": 10, "weightKg": 35 },
+            { "reps": 10, "weightKg": 35 }
+          ]
+        },
+        {
+          "exerciseId": "seed-latzug",
+          "sets": [
+            { "reps": 10, "weightKg": 57.5 },
+            { "reps": 10, "weightKg": 57.5 },
+            { "reps": 10, "weightKg": 57.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sim-e7",
+      "planId": "sim-push",
+      "date": "2026-06-04",
+      "exercises": [
+        {
+          "exerciseId": "seed-bankdruecken",
+          "sets": [
+            { "reps":  9, "weightKg": 82.5 },
+            { "reps":  8, "weightKg": 82.5 },
+            { "reps":  7, "weightKg": 80 }
+          ]
+        },
+        {
+          "exerciseId": "seed-schulterdruecken",
+          "sets": [
+            { "reps":  9, "weightKg": 42.5 },
+            { "reps":  8, "weightKg": 42.5 },
+            { "reps":  8, "weightKg": 40 }
+          ]
+        },
+        {
+          "exerciseId": "seed-trizepsdruecken",
+          "sets": [
+            { "reps": 10, "weightKg": 27.5 },
+            { "reps":  9, "weightKg": 27.5 },
+            { "reps":  9, "weightKg": 25 }
+          ]
+        }
+      ]
+    }
+  ]
+}

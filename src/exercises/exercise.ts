@@ -8,6 +8,7 @@ export function createExercise(name: string, muscleGroup: string): Exercise {
     name: name.trim(),
     muscleGroup: muscleGroup.trim(),
     source: 'custom',
+    defaultRestSeconds: 90,
   }
 }
 

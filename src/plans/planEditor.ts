@@ -14,6 +14,7 @@ export function createPlanExercise(
     stepWeightKg: options?.stepWeightKg ?? 2.5,
     startWeightKg: options?.startWeightKg ?? 20,
     startReps: options?.startReps ?? targetReps,
+    restSeconds: options?.restSeconds ?? 90,
   }
 }
 

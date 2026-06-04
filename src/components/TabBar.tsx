@@ -1,6 +1,6 @@
 import styles from './TabBar.module.css'
 
-export type Tab = 'plans' | 'exercises' | 'history'
+export type Tab = 'plans' | 'exercises' | 'progression' | 'history'
 
 interface Props {
   activeTab: Tab
@@ -25,6 +25,14 @@ export function TabBar({ activeTab, onTabChange }: Props) {
       >
         <span className={styles.icon}>🏋</span>
         <span className={styles.label}>Übungen</span>
+      </button>
+      <button
+        className={`${styles.tab} ${activeTab === 'progression' ? styles.active : ''}`}
+        onClick={() => onTabChange('progression')}
+        aria-label="Fortschritt"
+      >
+        <span className={styles.icon}>📊</span>
+        <span className={styles.label}>Fortschritt</span>
       </button>
       <button
         className={`${styles.tab} ${activeTab === 'history' ? styles.active : ''}`}

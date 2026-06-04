@@ -18,7 +18,7 @@ function formatDate(iso: string): string {
 
 interface Props {
   initialExerciseId?: string
-  onBack: () => void
+  onBack?: () => void
 }
 
 export function ProgressionScreen({ initialExerciseId, onBack }: Props) {
@@ -44,8 +44,10 @@ export function ProgressionScreen({ initialExerciseId, onBack }: Props) {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button className={styles.backButton} onClick={onBack}>← Zurück</button>
-        <h1 className={styles.title}>Progression</h1>
+        {onBack && (
+          <button className={styles.backButton} onClick={onBack}>← Zurück</button>
+        )}
+        <h1 className={styles.title}>Fortschritt</h1>
       </header>
 
       <div className={styles.controls}>
