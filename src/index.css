@@ -36,3 +36,12 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
+
+/* Entfernt 300ms Tap-Verzögerung und blaues Highlight auf iOS */
+button, a, input, select, textarea, [role=button] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Verhindert Text-Selektion beim langen Drücken */
+button { user-select: none; -webkit-user-select: none; }
