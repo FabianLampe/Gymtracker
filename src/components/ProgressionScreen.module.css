@@ -69,11 +69,36 @@
   color: var(--accent);
 }
 
+.chartBlock {
+  margin-bottom: 1.25rem;
+}
+
+.chartTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-2);
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
 .chartWrapper {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.25rem 0.25rem 0.75rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  padding: 0.875rem 0.25rem 0.5rem;
+}
+
+.chartEmpty {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-3);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 1.25rem;
 }
 
 .empty {

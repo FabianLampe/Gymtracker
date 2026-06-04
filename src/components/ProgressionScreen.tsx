@@ -4,7 +4,7 @@ import {
 } from 'recharts'
 import { indexedDbRepository } from '../db/indexeddb'
 import { buildGraphData } from '../training/graphData'
-import type { Einheit, Exercise } from '../db/types'
+import type { Einheit, Exercise, Plan } from '../db/types'
 import styles from './ProgressionScreen.module.css'
 
 type Span = 'week' | 'month' | 'year'
@@ -21,25 +21,38 @@ interface Props {
   onBack?: () => void
 }
 
-export function ProgressionScreen({ initialExerciseId, onBack }: Props) {
+export function ProgressionScreen({ onBack }: Props) {
+  const [plans, setPlans] = useState<Plan[]>([])
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [einheiten, setEinheiten] = useState<Einheit[]>([])
-  const [selectedId, setSelectedId] = useState(initialExerciseId ?? '')
+  const [selectedPlanId, setSelectedPlanId] = useState('')
   const [span, setSpan] = useState<Span>('month')
 
   useEffect(() => {
     Promise.all([
+      indexedDbRepository.getPlans(),
       indexedDbRepository.getExercises(),
       indexedDbRepository.getEinheiten(),
-    ]).then(([exs, es]) => {
+    ]).then(([ps, exs, es]) => {
+      setPlans(ps)
       setExercises(exs)
       setEinheiten(es)
-      if (!initialExerciseId && exs.length > 0) setSelectedId(exs[0].id)
+      if (ps.length > 0) setSelectedPlanId(ps[0].id)
     })
-  }, [initialExerciseId])
+  }, [])
 
   const today = new Date().toISOString().slice(0, 10)
-  const data = selectedId ? buildGraphData(einheiten, selectedId, span, today) : []
+  const selectedPlan = plans.find(p => p.id === selectedPlanId)
+
+  const planCharts = selectedPlan
+    ? [...selectedPlan.exercises]
+        .sort((a, b) => a.order - b.order)
+        .map(pe => ({
+          id: pe.exerciseId,
+          name: exercises.find(e => e.id === pe.exerciseId)?.name ?? pe.exerciseId,
+          data: buildGraphData(einheiten, pe.exerciseId, span, today),
+        }))
+    : []
 
   return (
     <div className={styles.container}>
@@ -53,11 +66,11 @@ export function ProgressionScreen({ initialExerciseId, onBack }: Props) {
       <div className={styles.controls}>
         <select
           className={styles.select}
-          value={selectedId}
-          onChange={e => setSelectedId(e.target.value)}
+          value={selectedPlanId}
+          onChange={e => setSelectedPlanId(e.target.value)}
         >
-          {exercises.map(ex => (
-            <option key={ex.id} value={ex.id}>{ex.name}</option>
+          {plans.map(p => (
+            <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
 
@@ -74,46 +87,62 @@ export function ProgressionScreen({ initialExerciseId, onBack }: Props) {
         </div>
       </div>
 
-      {data.length === 0 ? (
-        <p className={styles.empty}>Keine Daten für diesen Zeitraum.</p>
-      ) : (
-        <div className={styles.chartWrapper}>
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis
-                dataKey="date"
-                tickFormatter={formatDate}
-                tick={{ fill: '#64748b', fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fill: '#64748b', fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                unit=" kg"
-                width={48}
-              />
-              <Tooltip
-                contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8 }}
-                labelStyle={{ color: '#94a3b8' }}
-                itemStyle={{ color: '#93c5fd' }}
-                formatter={(v) => [`${v} kg`, 'Gewicht']}
-                labelFormatter={(label) => typeof label === 'string' ? formatDate(label) : String(label)}
-              />
-              <Line
-                type="monotone"
-                dataKey="weightKg"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={{ fill: '#3b82f6', r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+      {plans.length === 0 && (
+        <p className={styles.empty}>Noch kein Plan vorhanden.</p>
       )}
+
+      {planCharts.map(({ id, name, data }) => (
+        <div key={id} className={styles.chartBlock}>
+          <p className={styles.chartTitle}>{name}</p>
+          {data.length === 0 ? (
+            <p className={styles.chartEmpty}>Keine Daten im Zeitraum</p>
+          ) : (
+            <div className={styles.chartWrapper}>
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={formatDate}
+                    tick={{ fill: 'var(--text-3)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: 'var(--text-3)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                    unit=" kg"
+                    width={44}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'var(--surface-2)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                    labelStyle={{ color: 'var(--text-2)' }}
+                    itemStyle={{ color: 'var(--accent)' }}
+                    formatter={(v) => [`${v} kg`, 'Gewicht']}
+                    labelFormatter={(label) =>
+                      typeof label === 'string' ? formatDate(label) : String(label)
+                    }
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="weightKg"
+                    stroke="var(--accent)"
+                    strokeWidth={2}
+                    dot={{ fill: 'var(--accent)', r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
