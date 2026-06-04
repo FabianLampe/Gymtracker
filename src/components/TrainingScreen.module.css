@@ -1,6 +1,6 @@
 .screen {
   min-height: 100dvh;
-  background: #0f172a;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
 }
@@ -10,37 +10,39 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1rem 0.875rem;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .cancelButton {
   background: none;
   border: none;
-  color: #64748b;
-  font-size: 0.9rem;
+  color: var(--text-3);
+  font-size: 0.88rem;
   cursor: pointer;
-  padding: 0.25rem 0;
 }
 
 .title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #f1f5f9;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-transform: uppercase;
 }
 
 .finishButton {
-  background: #22c55e;
+  background: var(--success);
   border: none;
-  color: white;
-  font-size: 0.9rem;
-  font-weight: 600;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
   padding: 0.45rem 0.875rem;
   border-radius: 8px;
   cursor: pointer;
+  letter-spacing: 0.02em;
 }
 
-.finishButton:active { background: #16a34a; }
+.finishButton:active { background: var(--success-hover); }
 
 .body {
   flex: 1;
@@ -66,16 +68,18 @@
 }
 
 .muscleGroupDot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .exerciseName {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -83,40 +87,36 @@
 
 .swapButton {
   background: none;
-  border: 1px solid #334155;
-  color: #64748b;
-  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 0.72rem;
   padding: 0.2rem 0.5rem;
   border-radius: 6px;
   cursor: pointer;
   flex-shrink: 0;
 }
 
-.swapButton:active { background: #1e293b; }
+.swapButton:active { background: var(--surface); }
 
 .suggestion {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  background: #1e3a2f;
-  border: 1px solid #16a34a;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-hover);
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
   margin-bottom: 0.5rem;
 }
 
-.suggestionText {
-  font-size: 0.85rem;
-  color: #86efac;
-  flex: 1;
-}
+.suggestionText { font-size: 0.82rem; color: #ff8c94; flex: 1; }
 
 .acceptButton {
-  background: #22c55e;
+  background: var(--accent);
   border: none;
-  color: white;
-  font-size: 0.78rem;
-  font-weight: 600;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
   padding: 0.3rem 0.625rem;
   border-radius: 6px;
   cursor: pointer;
@@ -128,28 +128,22 @@
   align-items: center;
   gap: 0.4rem;
   margin-bottom: 0.45rem;
-  background: #1e293b;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 0.55rem 0.75rem;
+  padding: 0.6rem 0.75rem;
 }
 
-.setRow.done {
-  opacity: 0.55;
-}
+.setRow.done { opacity: 0.45; }
 
-.setLabel {
-  font-size: 0.72rem;
-  color: #475569;
-  min-width: 2.8rem;
-  flex-shrink: 0;
-}
+.setLabel { font-size: 0.7rem; color: var(--text-3); min-width: 2.75rem; flex-shrink: 0; }
 
 .setInput {
-  background: #0f172a;
-  border: 1.5px solid #334155;
-  border-radius: 8px;
-  color: #f1f5f9;
-  font-size: 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 0.95rem;
   padding: 0.4rem 0.4rem;
   text-align: center;
   outline: none;
@@ -157,25 +151,15 @@
   flex-shrink: 0;
 }
 
-.setInput:focus { border-color: #3b82f6; }
-
-.setSep {
-  color: #475569;
-  font-size: 0.8rem;
-  flex-shrink: 0;
-}
-
-.setUnit {
-  font-size: 0.78rem;
-  color: #64748b;
-  flex: 1;
-}
+.setInput:focus { border-color: var(--accent); }
+.setSep { color: var(--text-3); font-size: 0.78rem; flex-shrink: 0; }
+.setUnit { font-size: 0.75rem; color: var(--text-3); flex: 1; }
 
 .doneButton {
   background: none;
-  border: 1.5px solid #334155;
-  color: #475569;
-  font-size: 0.8rem;
+  border: 1.5px solid var(--border);
+  color: var(--text-3);
+  font-size: 0.78rem;
   padding: 0.25rem 0.45rem;
   border-radius: 6px;
   cursor: pointer;
@@ -184,29 +168,30 @@
 }
 
 .doneButton.active {
-  border-color: #22c55e;
-  color: #22c55e;
+  border-color: var(--success);
+  color: var(--success);
+  background: var(--success-bg);
 }
 
 .removeSetButton {
   background: none;
   border: none;
-  color: #334155;
-  font-size: 0.9rem;
+  color: var(--border);
+  font-size: 0.85rem;
   cursor: pointer;
   padding: 0.2rem 0.35rem;
-  border-radius: 6px;
+  border-radius: 5px;
   flex-shrink: 0;
   line-height: 1;
 }
 
-.removeSetButton:active { background: #334155; color: #f1f5f9; }
+.removeSetButton:active { background: var(--surface-2); color: var(--text-2); }
 
 .addSetButton {
   background: none;
-  border: 1px dashed #334155;
-  color: #475569;
-  font-size: 0.8rem;
+  border: 1px dashed var(--border);
+  color: var(--text-3);
+  font-size: 0.78rem;
   padding: 0.4rem;
   border-radius: 8px;
   cursor: pointer;
@@ -215,15 +200,15 @@
   margin-top: 0.2rem;
 }
 
-.addSetButton:active { background: #1e293b; }
+.addSetButton:active { background: var(--surface); }
 
 .addExerciseButton {
   display: block;
   width: 100%;
   background: none;
-  border: 1px dashed #334155;
-  color: #475569;
-  font-size: 0.9rem;
+  border: 1px dashed var(--border);
+  color: var(--text-3);
+  font-size: 0.88rem;
   padding: 0.75rem;
   border-radius: 10px;
   cursor: pointer;
@@ -231,16 +216,16 @@
   margin-top: 0.5rem;
 }
 
-.addExerciseButton:active { background: #1e293b; }
+.addExerciseButton:active { background: var(--surface); }
 
-/* ── Rest Timer ──────────────────────────────────────────────────── */
+/* ── Rest Timer ─────────────────────────────────────────────────── */
 .timerBanner {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: #0f172a;
-  border-top: 2px solid #3b82f6;
+  background: var(--bg);
+  border-top: 2px solid var(--accent);
   padding: 0.75rem 1rem 1rem;
   z-index: 50;
 }
@@ -253,8 +238,8 @@
 }
 
 .timerLabel {
-  font-size: 0.82rem;
-  color: #94a3b8;
+  font-size: 0.75rem;
+  color: var(--text-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -262,19 +247,25 @@
 }
 
 .timerCountdown {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #93c5fd;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
   margin-left: 0.5rem;
+  letter-spacing: -0.02em;
 }
 
-.timerCountdown.urgent { color: #f87171; }
+.timerCountdown.urgent { color: var(--accent); animation: pulse 0.8s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
 
 .timerTrack {
-  height: 4px;
-  background: #1e293b;
+  height: 3px;
+  background: var(--surface-2);
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 0.625rem;
@@ -282,35 +273,31 @@
 
 .timerFill {
   height: 100%;
-  background: #3b82f6;
+  background: var(--accent);
   border-radius: 2px;
   transition: width 0.9s linear;
 }
 
-.timerFill.urgent { background: #ef4444; }
-
-.timerActions {
-  display: flex;
-  gap: 0.5rem;
-}
+.timerActions { display: flex; gap: 0.5rem; }
 
 .timerActionButton {
-  background: #1e293b;
-  border: none;
-  color: #94a3b8;
-  font-size: 0.82rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 0.8rem;
+  font-weight: 600;
   padding: 0.4rem 0.75rem;
-  border-radius: 8px;
+  border-radius: 7px;
   cursor: pointer;
 }
 
 .timerSkipButton {
-  background: #1e293b;
+  background: none;
   border: none;
-  color: #64748b;
-  font-size: 0.82rem;
+  color: var(--text-3);
+  font-size: 0.8rem;
   padding: 0.4rem 0.75rem;
-  border-radius: 8px;
+  border-radius: 7px;
   cursor: pointer;
   margin-left: auto;
 }

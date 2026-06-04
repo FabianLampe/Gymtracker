@@ -1,6 +1,6 @@
 .screen {
   min-height: 100dvh;
-  background: #0f172a;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
 }
@@ -10,14 +10,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1rem 0.875rem;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .backButton {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--text-2);
   font-size: 0.9rem;
   cursor: pointer;
 }
@@ -25,21 +25,22 @@
 .title {
   font-size: 1rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 
 .saveButton {
-  background: #3b82f6;
+  background: var(--accent);
   border: none;
-  color: white;
+  color: #fff;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 0.45rem 0.875rem;
   border-radius: 8px;
   cursor: pointer;
 }
 
-.saveButton:active { background: #2563eb; }
+.saveButton:active { background: var(--accent-hover); }
 
 .body {
   flex: 1;
@@ -50,9 +51,11 @@
 .exerciseBlock { margin-bottom: 1.5rem; }
 
 .exerciseName {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
   margin-bottom: 0.625rem;
   padding-left: 0.25rem;
 }
@@ -61,24 +64,20 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  background: #1e293b;
+  margin-bottom: 0.45rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.625rem 0.875rem;
 }
 
-.setLabel {
-  font-size: 0.75rem;
-  color: #475569;
-  min-width: 3rem;
-  flex-shrink: 0;
-}
+.setLabel { font-size: 0.72rem; color: var(--text-3); min-width: 3rem; flex-shrink: 0; }
 
 .setInput {
-  background: #0f172a;
-  border: 1.5px solid #334155;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: #f1f5f9;
+  color: var(--text);
   font-size: 1rem;
   padding: 0.4rem 0.5rem;
   text-align: center;
@@ -87,7 +86,6 @@
   flex-shrink: 0;
 }
 
-.setInput:focus { border-color: #3b82f6; }
-
-.setSep { color: #475569; font-size: 0.85rem; flex-shrink: 0; }
-.setUnit { font-size: 0.8rem; color: #64748b; flex: 1; }
+.setInput:focus { border-color: var(--accent); }
+.setSep { color: var(--text-3); font-size: 0.8rem; flex-shrink: 0; }
+.setUnit { font-size: 0.78rem; color: var(--text-3); flex: 1; }

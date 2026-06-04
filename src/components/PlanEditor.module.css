@@ -14,7 +14,7 @@
 .backButton {
   background: none;
   border: none;
-  color: #3b82f6;
+  color: var(--accent);
   font-size: 1rem;
   cursor: pointer;
   padding: 0.25rem 0.5rem 0.25rem 0;
@@ -22,23 +22,40 @@
 }
 
 .title {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #f1f5f9;
+  letter-spacing: -0.02em;
+  color: var(--text);
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.addButton {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  background: #3b82f6;
+.startButton {
+  background: var(--success);
   border: none;
-  color: white;
-  font-size: 1.6rem;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.startButton:active { background: var(--success-hover); }
+.startButton:disabled { opacity: 0.3; cursor: default; }
+
+.addButton {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -47,65 +64,48 @@
   flex-shrink: 0;
 }
 
-.addButton:active { background: #2563eb; }
-
-.startButton {
-  background: #22c55e;
-  border: none;
-  color: white;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.45rem 0.75rem;
-  border-radius: 10px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.startButton:active { background: #16a34a; }
-.startButton:disabled { opacity: 0.35; cursor: default; }
+.addButton:active { background: var(--accent-hover); }
 
 .empty {
-  color: #475569;
+  color: var(--text-3);
   text-align: center;
   margin-top: 4rem;
   font-size: 0.9rem;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .exerciseCard {
-  background: #1e293b;
-  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
   padding: 0.875rem 1rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.625rem;
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.875rem;
 }
 
 .exerciseName {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #f1f5f9;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cardActions {
-  display: flex;
-  gap: 0.125rem;
-  flex-shrink: 0;
-}
+.cardActions { display: flex; gap: 0.125rem; flex-shrink: 0; }
 
 .iconButton {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--text-3);
   font-size: 1rem;
   cursor: pointer;
   padding: 0.3rem 0.45rem;
@@ -113,15 +113,8 @@
   line-height: 1;
 }
 
-.iconButton:active {
-  background: #334155;
-  color: #f1f5f9;
-}
-
-.iconButton:disabled {
-  opacity: 0.25;
-  cursor: default;
-}
+.iconButton:active { background: var(--surface-2); color: var(--text); }
+.iconButton:disabled { opacity: 0.2; cursor: default; }
 
 .settings {
   display: grid;
@@ -129,37 +122,25 @@
   gap: 0.5rem;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
+.field { display: flex; flex-direction: column; gap: 0.2rem; }
 
 .fieldLabel {
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: 0.6rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #64748b;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
 }
 
 .fieldInput {
-  background: #0f172a;
-  border: 1.5px solid #334155;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: #f1f5f9;
-  font-size: 0.95rem;
+  color: var(--text);
+  font-size: 0.9rem;
   padding: 0.45rem 0.625rem;
   outline: none;
   width: 100%;
 }
 
-.fieldInput:focus { border-color: #3b82f6; }
-
-.fieldUnit {
-  font-size: 0.8rem;
-  color: #475569;
-  align-self: flex-end;
-  padding-bottom: 0.5rem;
-  padding-left: 0.2rem;
-}
+.fieldInput:focus { border-color: var(--accent); }

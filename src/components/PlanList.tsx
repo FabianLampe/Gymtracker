@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { indexedDbRepository } from '../db/indexeddb'
 import { createPlan } from '../plans/plan'
 import type { Plan } from '../db/types'
+import { Logo } from './Logo'
 import styles from './PlanList.module.css'
 
 interface Props {
@@ -63,13 +64,14 @@ export function PlanList({ onOpenPlan, onOpenSettings }: Props) {
 
   return (
     <div className={styles.container}>
+      <div className={styles.appHeader}>
+        <Logo size={34} />
+        <span className={styles.appName}>Gymtracker</span>
+        <button className={styles.settingsButton} onClick={onOpenSettings} aria-label="Einstellungen">⚙</button>
+      </div>
+
       <header className={styles.header}>
-        <h1 className={styles.title}>Meine Pläne</h1>
-          <button
-            style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer', padding: '0.25rem', marginRight: 'auto' }}
-            onClick={onOpenSettings}
-            aria-label="Einstellungen"
-          >⚙</button>
+        <span className={styles.title}>Meine Pläne</span>
         <button
           className={styles.addButton}
           onClick={() => setIsAdding(true)}
