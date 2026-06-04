@@ -1,0 +1,84 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 5rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem 0.25rem 0;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.select {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.875rem;
+  outline: none;
+  width: 100%;
+}
+
+.select:focus { border-color: #3b82f6; }
+
+.spanButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.spanButton {
+  flex: 1;
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.spanButton.active {
+  background: #1e3a5f;
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.chartWrapper {
+  background: #1e293b;
+  border-radius: 14px;
+  padding: 1rem 0.5rem 0.5rem;
+}
+
+.empty {
+  color: #475569;
+  text-align: center;
+  padding: 3rem 0;
+  font-size: 0.9rem;
+}

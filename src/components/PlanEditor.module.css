@@ -1,0 +1,165 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 5rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem 0.25rem 0;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.addButton {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: none;
+  color: white;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.addButton:active { background: #2563eb; }
+
+.startButton {
+  background: #22c55e;
+  border: none;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.startButton:active { background: #16a34a; }
+.startButton:disabled { opacity: 0.35; cursor: default; }
+
+.empty {
+  color: #475569;
+  text-align: center;
+  margin-top: 4rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.exerciseCard {
+  background: #1e293b;
+  border-radius: 14px;
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.exerciseName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardActions {
+  display: flex;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.3rem 0.45rem;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.iconButton:active {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+.iconButton:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.fieldLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.fieldInput {
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 8px;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+  padding: 0.45rem 0.625rem;
+  outline: none;
+  width: 100%;
+}
+
+.fieldInput:focus { border-color: #3b82f6; }
+
+.fieldUnit {
+  font-size: 0.8rem;
+  color: #475569;
+  align-self: flex-end;
+  padding-bottom: 0.5rem;
+  padding-left: 0.2rem;
+}

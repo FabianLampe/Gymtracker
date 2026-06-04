@@ -1,0 +1,68 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 5rem;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 1.5rem;
+}
+
+.empty {
+  color: #475569;
+  text-align: center;
+  margin-top: 4rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.card {
+  background: #1e293b;
+  border-radius: 14px;
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.625rem;
+}
+
+.planName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.date {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.exerciseRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.2rem 0;
+}
+
+.exerciseRowName {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exerciseRowSummary {
+  font-size: 0.8rem;
+  color: #64748b;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
