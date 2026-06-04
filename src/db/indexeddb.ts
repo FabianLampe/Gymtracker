@@ -49,4 +49,7 @@ export const indexedDbRepository: Repository = {
   async updateEinheit(einheit) {
     await db.einheiten.put(einheit)
   },
+  async deleteEinheit(id) {
+    await db.einheiten.delete(id)
+  },
 }

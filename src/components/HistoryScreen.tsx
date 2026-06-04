@@ -10,8 +10,7 @@ function formatDate(iso: string): string {
 
 function setsSummary(sets: { reps: number; weightKg: number }[]): string {
   if (sets.length === 0) return '—'
-  const topWeight = sets[0].weightKg
-  return `${sets.length} × ${topWeight} kg`
+  return `${sets.length} × ${sets[0].weightKg} kg`
 }
 
 interface Props {
@@ -22,6 +21,7 @@ export function HistoryScreen({ onEditEinheit }: Props) {
   const [einheiten, setEinheiten] = useState<Einheit[]>([])
   const [plans, setPlans] = useState<Plan[]>([])
   const [catalog, setCatalog] = useState<Exercise[]>([])
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -35,6 +35,16 @@ export function HistoryScreen({ onEditEinheit }: Props) {
     })
   }, [])
 
+  async function handleDelete(id: string) {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      return
+    }
+    await indexedDbRepository.deleteEinheit(id)
+    setEinheiten(prev => prev.filter(e => e.id !== id))
+    setConfirmDeleteId(null)
+  }
+
   function planName(id: string) {
     return plans.find(p => p.id === id)?.name ?? '—'
   }
@@ -44,7 +54,7 @@ export function HistoryScreen({ onEditEinheit }: Props) {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} onClick={() => setConfirmDeleteId(null)}>
       <h1 className={styles.title}>Verlauf</h1>
 
       {einheiten.length === 0 && (
@@ -58,13 +68,20 @@ export function HistoryScreen({ onEditEinheit }: Props) {
         <div key={einheit.id} className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.planName}>{planName(einheit.planId)}</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className={styles.cardActions} onClick={e => e.stopPropagation()}>
               <span className={styles.date}>{formatDate(einheit.date)}</span>
               <button
+                className={styles.iconButton}
                 onClick={() => onEditEinheit(einheit.id)}
-                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.9rem', padding: '0.1rem 0.25rem' }}
-                aria-label="Einheit bearbeiten"
+                aria-label="Bearbeiten"
               >✎</button>
+              <button
+                className={`${styles.iconButton} ${confirmDeleteId === einheit.id ? styles.deleteConfirm : ''}`}
+                onClick={() => handleDelete(einheit.id)}
+                aria-label="Löschen"
+              >
+                {confirmDeleteId === einheit.id ? 'Sicher?' : '🗑'}
+              </button>
             </div>
           </div>
           {einheit.exercises.map(ex => (

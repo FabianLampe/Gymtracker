@@ -63,6 +63,13 @@ describe('InMemoryRepository — Repository-Vertrag', () => {
     expect(await repo.getEinheiten()).toEqual([corrected])
   })
 
+  it('löscht eine Einheit', async () => {
+    const einheit: Einheit = { id: 'e-3', planId: 'p-1', date: '2026-06-04', exercises: [] }
+    await repo.saveEinheit(einheit)
+    await repo.deleteEinheit('e-3')
+    expect(await repo.getEinheiten()).toEqual([])
+  })
+
   it('gibt leere Arrays zurück wenn nichts gespeichert ist', async () => {
     expect(await repo.getExercises()).toEqual([])
     expect(await repo.getPlans()).toEqual([])

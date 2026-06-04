@@ -42,4 +42,8 @@ export class InMemoryRepository implements Repository {
   async updateEinheit(einheit: Einheit): Promise<void> {
     this.einheiten.set(einheit.id, { ...einheit })
   }
+
+  async deleteEinheit(id: string): Promise<void> {
+    this.einheiten.delete(id)
+  }
 }

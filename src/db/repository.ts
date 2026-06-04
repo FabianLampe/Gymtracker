@@ -16,4 +16,5 @@ export interface Repository {
   getEinheiten(): Promise<Einheit[]>
   saveEinheit(einheit: Einheit): Promise<void>
   updateEinheit(einheit: Einheit): Promise<void>
+  deleteEinheit(id: string): Promise<void>
 }
