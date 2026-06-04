@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { indexedDbRepository } from '../db/indexeddb'
+import { createExercise } from '../exercises/exercise'
 import type { Exercise } from '../db/types'
 import styles from './ExercisePicker.module.css'
 
@@ -23,13 +25,17 @@ interface Props {
 
 export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
   const [search, setSearch] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newGroup, setNewGroup] = useState('')
+  const [localExercises, setLocalExercises] = useState(exercises)
 
   const filtered = search.trim()
-    ? exercises.filter(e =>
+    ? localExercises.filter(e =>
         e.name.toLowerCase().includes(search.toLowerCase()) ||
         e.muscleGroup.toLowerCase().includes(search.toLowerCase()),
       )
-    : exercises
+    : localExercises
 
   const grouped = filtered.reduce<Record<string, Exercise[]>>((acc, ex) => {
     if (!acc[ex.muscleGroup]) acc[ex.muscleGroup] = []
@@ -38,6 +44,20 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
   }, {})
 
   const groups = sortedGroups(Object.keys(grouped))
+  const existingGroups = [...new Set(localExercises.map(e => e.muscleGroup))]
+
+  async function handleCreate() {
+    const name = newName.trim()
+    const group = newGroup.trim()
+    if (!name || !group) return
+    const ex = createExercise(name, group)
+    await indexedDbRepository.saveExercise(ex)
+    setLocalExercises(prev => [...prev, ex])
+    setNewName('')
+    setNewGroup('')
+    setCreating(false)
+    onSelect(ex.id)
+  }
 
   return (
     <div className={styles.overlay}>
@@ -51,7 +71,7 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
         value={search}
         onChange={e => setSearch(e.target.value)}
         placeholder="Suchen …"
-        autoFocus
+        autoFocus={!creating}
       />
 
       <div className={styles.list}>
@@ -69,6 +89,57 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
             ))}
           </div>
         ))}
+
+        {/* ── Neue Übung anlegen ──────────────────────────────────── */}
+        {!creating ? (
+          <button
+            className={styles.createButton}
+            onClick={() => { setCreating(true); setSearch('') }}
+          >
+            + Neue Übung anlegen
+          </button>
+        ) : (
+          <div className={styles.createForm}>
+            <p className={styles.createTitle}>Neue Übung</p>
+            <input
+              className={styles.createInput}
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              placeholder="Name der Übung"
+              autoFocus
+              onKeyDown={e => e.key === 'Escape' && setCreating(false)}
+            />
+            <input
+              className={styles.createInput}
+              value={newGroup}
+              onChange={e => setNewGroup(e.target.value)}
+              placeholder="Muskelgruppe"
+              list="picker-groups"
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleCreate()
+                if (e.key === 'Escape') setCreating(false)
+              }}
+            />
+            <datalist id="picker-groups">
+              {existingGroups.map(g => <option key={g} value={g} />)}
+            </datalist>
+            <div className={styles.createActions}>
+              <button
+                className={styles.createConfirm}
+                onClick={handleCreate}
+                disabled={!newName.trim() || !newGroup.trim()}
+              >
+                ✓ Anlegen & hinzufügen
+              </button>
+              <button
+                className={styles.createCancel}
+                onClick={() => { setCreating(false); setNewName(''); setNewGroup('') }}
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

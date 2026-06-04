@@ -76,3 +76,82 @@
 }
 
 .exerciseButton:active { background: #2d3f55; }
+
+/* ── Neue Übung anlegen ───────────────────────────────────────────── */
+.createButton {
+  display: block;
+  width: 100%;
+  background: none;
+  border: 1.5px dashed #334155;
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 0.9rem;
+  padding: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.createButton:active { background: #1e293b; color: #f1f5f9; }
+
+.createForm {
+  background: #1e293b;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.createTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #64748b;
+}
+
+.createInput {
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 8px;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+  padding: 0.55rem 0.75rem;
+  outline: none;
+}
+
+.createInput:focus { border-color: #3b82f6; }
+.createInput::placeholder { color: #475569; }
+
+.createActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.createConfirm {
+  flex: 1;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.55rem;
+  cursor: pointer;
+}
+
+.createConfirm:disabled { opacity: 0.4; cursor: default; }
+.createConfirm:not(:disabled):active { background: #2563eb; }
+
+.createCancel {
+  background: #334155;
+  border: none;
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  padding: 0.55rem 0.875rem;
+  cursor: pointer;
+}
