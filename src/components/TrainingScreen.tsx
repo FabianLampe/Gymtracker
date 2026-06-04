@@ -7,7 +7,7 @@ import {
   createEinheit,
 } from '../training/prefill'
 import { addSetToTraining, removeSetFromTraining } from '../training/trainingOps'
-import { computeProgressionSuggestion, getFirstSetRepsForExercise } from '../training/progression'
+import { computeProgressionSuggestion, getFirstSetRepsForExercise, computeRestFromSet } from '../training/progression'
 import {
   addExerciseToPlan,
   createPlanExercise,
@@ -103,10 +103,8 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
 
-  function startRestTimer(exerciseId: string) {
-    if (!plan) return
-    const pe = plan.exercises.find(e => e.exerciseId === exerciseId)
-    const restSeconds = pe?.restSeconds ?? 90
+  function startRestTimer(exerciseId: string, reps: number, weightKg: number) {
+    const restSeconds = computeRestFromSet(reps, weightKg)
     const name = catalog.find(e => e.id === exerciseId)?.name ?? ''
     if (timerRef.current) clearInterval(timerRef.current)
     setTimer({ exerciseName: name, restSeconds, totalSeconds: restSeconds, remaining: restSeconds })
@@ -151,12 +149,14 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
 
   function handleSetDone(exIdx: number, setIdx: number, exerciseId: string) {
     const key = `${exIdx}-${setIdx}`
+    const set = exercises[exIdx]?.sets[setIdx]
     setDoneSets(prev => {
       const next = new Set(prev)
-      if (next.has(key)) { next.delete(key) } else { next.add(key) }
+      if (next.has(key)) { next.delete(key); return next }
+      next.add(key)
       return next
     })
-    startRestTimer(exerciseId)
+    if (set) startRestTimer(exerciseId, set.reps, set.weightKg)
   }
 
   async function handleAddSet(exIdx: number) {
@@ -224,6 +224,14 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
   }
 
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+
+  function restLabel(totalSeconds: number): string {
+    if (totalSeconds >= 300) return '≥ 90 % 1RM — Maximalkraft'
+    if (totalSeconds >= 180) return '80–90 % 1RM — Kraft'
+    if (totalSeconds >= 120) return '70–80 % 1RM — Hypertrophie'
+    if (totalSeconds >= 90)  return '60–70 % 1RM — Hypertrophie'
+    return '< 60 % 1RM — Ausdauer'
+  }
 
   if (!plan) return null
 
@@ -325,7 +333,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
         {timer && (
           <div className={styles.timerBanner}>
             <div className={styles.timerHeader}>
-              <span className={styles.timerLabel}>⏱ Pause — {timer.exerciseName}</span>
+              <span className={styles.timerLabel}>⏱ {timer.exerciseName} · {restLabel(timer.totalSeconds)}</span>
               <span className={`${styles.timerCountdown} ${timer.remaining <= 10 ? styles.urgent : ''}`}>
                 {fmt(timer.remaining)}
               </span>
