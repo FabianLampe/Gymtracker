@@ -4,7 +4,7 @@ import type { AppState } from '../types'
 
 const state: AppState = {
   version: 1,
-  exercises: [{ id: 'ex-1', name: 'Bankdrücken', muscleGroup: 'Brust', source: 'seeded' }],
+  exercises: [{ id: 'ex-1', name: 'Bankdrücken', muscleGroup: 'Brust', source: 'seeded', defaultRestSeconds: 180 }],
   plans: [{ id: 'p-1', name: 'Push', exercises: [] }],
   einheiten: [{
     id: 'e-1', planId: 'p-1', date: '2026-06-04',

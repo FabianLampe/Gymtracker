@@ -15,13 +15,14 @@ describe('InMemoryRepository — Repository-Vertrag', () => {
       name: 'Bankdrücken',
       muscleGroup: 'Brust',
       source: 'seeded',
+      defaultRestSeconds: 180,
     }
     await repo.saveExercise(exercise)
     expect(await repo.getExercises()).toEqual([exercise])
   })
 
   it('löscht eine Übung', async () => {
-    const exercise: Exercise = { id: 'ex-2', name: 'Kniebeuge', muscleGroup: 'Beine', source: 'seeded' }
+    const exercise: Exercise = { id: 'ex-2', name: 'Kniebeuge', muscleGroup: 'Beine', source: 'seeded', defaultRestSeconds: 180 }
     await repo.saveExercise(exercise)
     await repo.deleteExercise('ex-2')
     expect(await repo.getExercises()).toEqual([])

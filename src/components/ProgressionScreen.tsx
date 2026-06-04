@@ -99,8 +99,8 @@ export function ProgressionScreen({ initialExerciseId, onBack }: Props) {
                 contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8 }}
                 labelStyle={{ color: '#94a3b8' }}
                 itemStyle={{ color: '#93c5fd' }}
-                formatter={(v: number) => [`${v} kg`, 'Gewicht']}
-                labelFormatter={formatDate}
+                formatter={(v) => [`${v} kg`, 'Gewicht']}
+                labelFormatter={(label) => typeof label === 'string' ? formatDate(label) : String(label)}
               />
               <Line
                 type="monotone"
