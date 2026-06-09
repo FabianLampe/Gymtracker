@@ -32,6 +32,7 @@ interface TimerState {
   restSeconds: number
   totalSeconds: number
   remaining: number
+  endTime: number
 }
 
 interface Props {
@@ -54,6 +55,22 @@ function playDoneBeep() {
     osc.start()
     osc.stop(ctx.currentTime + 0.4)
   } catch { /* AudioContext may be blocked on first gesture */ }
+}
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission()
+  }
+}
+
+function notifyTimerDone(exerciseName: string) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Pause vorbei! 💪', {
+      body: `${exerciseName} — bereit für den nächsten Satz`,
+      tag: 'gym-rest-timer',
+      renotify: true,
+    })
+  }
 }
 
 export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
@@ -80,6 +97,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
       const prefill = last ? buildPrefillFromLastEinheit(found, last) : buildPrefillFromPlan(found)
       setPlan(found)
       setExercises(prefill)
+      requestNotificationPermission()
 
       const planEinheiten = einheiten
         .filter(e => e.planId === planId)
@@ -104,22 +122,44 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
 
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return
+      setTimer(prev => {
+        if (!prev) return null
+        const remaining = Math.max(0, Math.ceil((prev.endTime - Date.now()) / 1000))
+        if (remaining <= 0) {
+          if (timerRef.current) clearInterval(timerRef.current)
+          playDoneBeep()
+          notifyTimerDone(prev.exerciseName)
+          return null
+        }
+        return { ...prev, remaining }
+      })
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
+
   function startRestTimer(exerciseId: string, reps: number, weightKg: number) {
     const restSeconds = computeRestFromSet(reps, weightKg)
     const name = catalog.find(e => e.id === exerciseId)?.name ?? ''
     if (timerRef.current) clearInterval(timerRef.current)
-    setTimer({ exerciseName: name, restSeconds, totalSeconds: restSeconds, remaining: restSeconds })
+    const endTime = Date.now() + restSeconds * 1000
+    setTimer({ exerciseName: name, restSeconds, totalSeconds: restSeconds, remaining: restSeconds, endTime })
     timerRef.current = setInterval(() => {
       setTimer(prev => {
         if (!prev) return null
-        if (prev.remaining <= 1) {
+        const remaining = Math.max(0, Math.ceil((prev.endTime - Date.now()) / 1000))
+        if (remaining <= 0) {
           clearInterval(timerRef.current!)
           playDoneBeep()
+          notifyTimerDone(prev.exerciseName)
           return null
         }
-        return { ...prev, remaining: prev.remaining - 1 }
+        return { ...prev, remaining }
       })
-    }, 1000)
+    }, 500)
   }
 
   function skipTimer() {
@@ -128,7 +168,12 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
   }
 
   function addTimerSeconds(s: number) {
-    setTimer(prev => prev ? { ...prev, remaining: prev.remaining + s, totalSeconds: prev.totalSeconds + s } : null)
+    setTimer(prev => prev ? {
+      ...prev,
+      remaining: prev.remaining + s,
+      totalSeconds: prev.totalSeconds + s,
+      endTime: prev.endTime + s * 1000,
+    } : null)
   }
 
   async function savePlan(updated: Plan) {
