@@ -65,6 +65,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
   const [pickerMode, setPickerMode] = useState<PickerMode | null>(null)
   const [timer, setTimer] = useState<TimerState | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [rawInputs, setRawInputs] = useState<Record<string, string>>({})
 
   useEffect(() => {
     Promise.all([
@@ -136,7 +137,8 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
   }
 
   function updateSet(exIdx: number, setIdx: number, field: 'reps' | 'weightKg', raw: string) {
-    const value = parseFloat(raw)
+    setRawInputs(prev => ({ ...prev, [`${exIdx}-${setIdx}-${field}`]: raw }))
+    const value = raw === '' ? 0 : parseFloat(raw)
     if (isNaN(value) || value < 0) return
     setExercises(prev =>
       prev.map((ex, ei) =>
@@ -198,6 +200,16 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
 
   function handleAcceptSuggestion(exerciseId: string, newWeightKg: number) {
     const targetReps = plan?.exercises.find(pe => pe.exerciseId === exerciseId)?.targetReps ?? 10
+    const exIdx = exercises.findIndex(ex => ex.exerciseId === exerciseId)
+    if (exIdx >= 0) {
+      const numSets = exercises[exIdx].sets.length
+      const newRaws: Record<string, string> = {}
+      for (let si = 0; si < numSets; si++) {
+        newRaws[`${exIdx}-${si}-reps`] = String(targetReps)
+        newRaws[`${exIdx}-${si}-weightKg`] = String(newWeightKg)
+      }
+      setRawInputs(r => ({ ...r, ...newRaws }))
+    }
     setExercises(prev =>
       prev.map(ex =>
         ex.exerciseId === exerciseId
@@ -291,7 +303,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
                       className={styles.setInput}
                       type="number"
                       min={0}
-                      value={s.reps}
+                      value={rawInputs[`${exIdx}-${setIdx}-reps`] ?? ''}
                       onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
                     />
                     <span className={styles.setSep}>×</span>
@@ -300,7 +312,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
                       type="number"
                       min={0}
                       step={0.5}
-                      value={s.weightKg}
+                      value={rawInputs[`${exIdx}-${setIdx}-weightKg`] ?? ''}
                       onChange={e => updateSet(exIdx, setIdx, 'weightKg', e.target.value)}
                     />
                     <span className={styles.setUnit}>kg</span>

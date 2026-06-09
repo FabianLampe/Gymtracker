@@ -17,6 +17,7 @@ export function EinheitEditor({ einheitId, onBack }: Props) {
   const [einheit, setEinheit] = useState<Einheit | null>(null)
   const [catalog, setCatalog] = useState<Exercise[]>([])
   const [exercises, setExercises] = useState<CompletedExercise[]>([])
+  const [rawInputs, setRawInputs] = useState<Record<string, string>>({})
 
   useEffect(() => {
     Promise.all([
@@ -32,7 +33,8 @@ export function EinheitEditor({ einheitId, onBack }: Props) {
   }, [einheitId])
 
   function updateSet(exIdx: number, setIdx: number, field: 'reps' | 'weightKg', raw: string) {
-    const value = parseFloat(raw)
+    setRawInputs(prev => ({ ...prev, [`${exIdx}-${setIdx}-${field}`]: raw }))
+    const value = raw === '' ? 0 : parseFloat(raw)
     if (isNaN(value) || value < 0) return
     setExercises(prev =>
       prev.map((ex, ei) =>
@@ -74,7 +76,7 @@ export function EinheitEditor({ einheitId, onBack }: Props) {
                   className={styles.setInput}
                   type="number"
                   min={0}
-                  value={s.reps}
+                  value={rawInputs[`${exIdx}-${setIdx}-reps`] ?? ''}
                   onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
                 />
                 <span className={styles.setSep}>Wdh ×</span>
@@ -83,7 +85,7 @@ export function EinheitEditor({ einheitId, onBack }: Props) {
                   type="number"
                   min={0}
                   step={0.5}
-                  value={s.weightKg}
+                  value={rawInputs[`${exIdx}-${setIdx}-weightKg`] ?? ''}
                   onChange={e => updateSet(exIdx, setIdx, 'weightKg', e.target.value)}
                 />
                 <span className={styles.setUnit}>kg</span>
