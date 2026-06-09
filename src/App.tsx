@@ -10,6 +10,7 @@ import { SettingsScreen } from './components/SettingsScreen'
 import { TabBar, type Tab } from './components/TabBar'
 import { seedIfEmpty } from './exercises/exercise'
 import { indexedDbRepository } from './db/indexeddb'
+import { loadSession } from './training/sessionPersistence'
 
 type AppScreen =
   | { name: 'plan-list' }
@@ -58,8 +59,12 @@ function App() {
 
   useEffect(() => {
     seedIfEmpty(indexedDbRepository)
-    // Initiales History-Entry damit Wisch-zurück nicht aus der App führt
     window.history.pushState({ depth: 0 }, '')
+    const saved = loadSession()
+    if (saved) {
+      window.history.pushState({ depth: 1 }, '')
+      setScreen({ name: 'training', planId: saved.planId })
+    }
   }, [])
 
   useEffect(() => {

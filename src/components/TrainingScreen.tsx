@@ -6,6 +6,7 @@ import {
   lastEinheitForPlan,
   createEinheit,
 } from '../training/prefill'
+import { saveSession, loadSession, clearSession } from '../training/sessionPersistence'
 import { addSetToTraining, removeSetFromTraining } from '../training/trainingOps'
 import { computeProgressionSuggestion, getFirstSetRepsForExercise, computeRestFromSet } from '../training/progression'
 import {
@@ -96,7 +97,14 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
       const last = lastEinheitForPlan(einheiten, planId)
       const prefill = last ? buildPrefillFromLastEinheit(found, last) : buildPrefillFromPlan(found)
       setPlan(found)
-      setExercises(prefill)
+      const saved = loadSession()
+      if (saved && saved.planId === planId) {
+        setExercises(saved.exercises)
+        setRawInputs(saved.rawInputs)
+        setDoneSets(new Set(saved.doneSets))
+      } else {
+        setExercises(prefill)
+      }
       requestNotificationPermission()
 
       const planEinheiten = einheiten
@@ -121,6 +129,17 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
+
+  useEffect(() => {
+    if (!plan || exercises.length === 0) return
+    saveSession({
+      planId: plan.id,
+      exercises,
+      doneSets: [...doneSets],
+      rawInputs,
+      savedAt: Date.now(),
+    })
+  }, [exercises, rawInputs, doneSets, plan])
 
   useEffect(() => {
     function onVisible() {
@@ -271,7 +290,13 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
     const einheit: Einheit = createEinheit(plan.id, exercises, date)
     await indexedDbRepository.saveEinheit(einheit)
     if (timerRef.current) clearInterval(timerRef.current)
+    clearSession()
     onFinish()
+  }
+
+  function handleCancel() {
+    clearSession()
+    onCancel()
   }
 
   function exerciseName(id: string) { return catalog.find(e => e.id === id)?.name ?? id }
@@ -304,7 +329,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
 
       <div className={styles.screen}>
         <header className={styles.header}>
-          <button className={styles.cancelButton} onClick={onCancel}>Abbrechen</button>
+          <button className={styles.cancelButton} onClick={handleCancel}>Abbrechen</button>
           <span className={styles.title}>{plan.name}</span>
           <button className={styles.finishButton} onClick={handleFinish}>Beenden ✓</button>
         </header>
