@@ -63,6 +63,17 @@ function playDoneBeep() {
   } catch { /* AudioContext may be blocked on first gesture */ }
 }
 
+// Befüllt die Eingabefelder mit den Werten aus dem Trainings-State,
+// z.B. den Wiederholungen/Gewichten der letzten Einheit
+function buildRawInputs(exercises: CompletedExercise[]): Record<string, string> {
+  const raws: Record<string, string> = {}
+  exercises.forEach((ex, ei) => ex.sets.forEach((s, si) => {
+    raws[`${ei}-${si}-reps`] = String(s.reps)
+    raws[`${ei}-${si}-weightKg`] = String(s.weightKg)
+  }))
+  return raws
+}
+
 function requestNotificationPermission() {
   if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission()
@@ -107,13 +118,10 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
         setRawInputs(saved.rawInputs)
         setDoneSets(new Set(saved.doneSets))
       } else {
-        // Neues Training: Felder starten leer (0) — nur die Satz-Anzahl
-        // kommt aus dem Plan bzw. der letzten Einheit. Die Werte der
-        // letzten Einheit fließen nur in den Progressions-Vorschlag ein.
-        setExercises(prefill.map(ex => ({
-          ...ex,
-          sets: ex.sets.map(() => ({ reps: 0, weightKg: 0 })),
-        })))
+        // Neues Training: Werte der letzten Einheit (bzw. Plan-Startwerte)
+        // stehen sichtbar in den Feldern und können frei geändert werden
+        setExercises(prefill)
+        setRawInputs(buildRawInputs(prefill))
       }
       requestNotificationPermission()
 
@@ -238,11 +246,19 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
   }
 
   async function handleAddSet(exIdx: number) {
+    const ex = exercises[exIdx]
+    if (!ex) return
+    const newIdx = ex.sets.length
+    const lastSet = ex.sets[newIdx - 1] ?? { reps: 10, weightKg: 20 }
     setExercises(prev => addSetToTraining(prev, exIdx))
+    setRawInputs(prev => ({
+      ...prev,
+      [`${exIdx}-${newIdx}-reps`]: String(lastSet.reps),
+      [`${exIdx}-${newIdx}-weightKg`]: String(lastSet.weightKg),
+    }))
     if (!plan) return
-    const exerciseId = exercises[exIdx].exerciseId
-    const pe = plan.exercises.find(e => e.exerciseId === exerciseId)
-    if (pe) await savePlan(updatePlanExercise(plan, exerciseId, { sets: pe.sets + 1 }))
+    const pe = plan.exercises.find(e => e.exerciseId === ex.exerciseId)
+    if (pe) await savePlan(updatePlanExercise(plan, ex.exerciseId, { sets: pe.sets + 1 }))
   }
 
   async function handleRemoveSet(exIdx: number, setIdx: number) {
@@ -260,31 +276,27 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
     if (!plan || !pickerMode) return
     if (pickerMode.type === 'swap') {
       const { exIdx, oldExerciseId } = pickerMode
-      // Andere Übung → alte Werte und Häkchen gelten nicht mehr
-      setExercises(prev => prev.map((ex, i) =>
-        i === exIdx
-          ? { exerciseId, sets: ex.sets.map(() => ({ reps: 0, weightKg: 0 })) }
-          : ex,
-      ))
-      setRawInputs(prev => {
-        const next = { ...prev }
-        for (const key of Object.keys(next)) {
-          if (key.startsWith(`${exIdx}-`)) delete next[key]
-        }
-        return next
-      })
-      setDoneSets(prev => new Set([...prev].filter(key => !key.startsWith(`${exIdx}-`))))
+      setExercises(prev => prev.map((ex, i) => i === exIdx ? { ...ex, exerciseId } : ex))
       await savePlan(swapExerciseInPlan(plan, oldExerciseId, exerciseId))
     } else {
       const ex = catalog.find(e => e.id === exerciseId)
       const newPe = createPlanExercise(exerciseId, plan.exercises.length, {
         restSeconds: ex?.defaultRestSeconds ?? 90,
       })
+      const newIdx = exercises.length
       const prefillEx: CompletedExercise = {
         exerciseId,
-        sets: Array.from({ length: newPe.sets }, () => ({ reps: 0, weightKg: 0 })),
+        sets: Array.from({ length: newPe.sets }, () => ({ reps: newPe.startReps, weightKg: newPe.startWeightKg })),
       }
       setExercises(prev => [...prev, prefillEx])
+      setRawInputs(prev => {
+        const next = { ...prev }
+        prefillEx.sets.forEach((s, si) => {
+          next[`${newIdx}-${si}-reps`] = String(s.reps)
+          next[`${newIdx}-${si}-weightKg`] = String(s.weightKg)
+        })
+        return next
+      })
       await savePlan(addExerciseToPlan(plan, newPe))
     }
     setPickerMode(null)
