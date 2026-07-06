@@ -16,10 +16,19 @@ export function saveSession(session: SavedSession): void {
   } catch { /* storage full */ }
 }
 
+// Nach 12 h gilt eine unterbrochene Session als verwaist und wird verworfen
+const MAX_AGE_MS = 12 * 60 * 60 * 1000
+
 export function loadSession(): SavedSession | null {
   try {
     const raw = localStorage.getItem(KEY)
-    return raw ? (JSON.parse(raw) as SavedSession) : null
+    if (!raw) return null
+    const session = JSON.parse(raw) as SavedSession
+    if (!session.planId || Date.now() - session.savedAt > MAX_AGE_MS) {
+      localStorage.removeItem(KEY)
+      return null
+    }
+    return session
   } catch { return null }
 }
 

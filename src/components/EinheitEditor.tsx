@@ -28,6 +28,13 @@ export function EinheitEditor({ einheitId, onBack }: Props) {
       if (!found) return
       setEinheit(found)
       setExercises(found.exercises.map(ex => ({ ...ex, sets: ex.sets.map(s => ({ ...s })) })))
+      // Gespeicherte Werte in den Feldern anzeigen; Leeren eines Felds setzt auf 0
+      const raws: Record<string, string> = {}
+      found.exercises.forEach((ex, ei) => ex.sets.forEach((s, si) => {
+        raws[`${ei}-${si}-reps`] = String(s.reps)
+        raws[`${ei}-${si}-weightKg`] = String(s.weightKg)
+      }))
+      setRawInputs(raws)
       setCatalog(exs)
     })
   }, [einheitId])
@@ -69,7 +76,7 @@ export function EinheitEditor({ einheitId, onBack }: Props) {
         {exercises.map((ex, exIdx) => (
           <div key={ex.exerciseId} className={styles.exerciseBlock}>
             <p className={styles.exerciseName}>{exerciseName(ex.exerciseId)}</p>
-            {ex.sets.map((s, setIdx) => (
+            {ex.sets.map((_, setIdx) => (
               <div key={setIdx} className={styles.setRow}>
                 <span className={styles.setLabel}>Satz {setIdx + 1}</span>
                 <input

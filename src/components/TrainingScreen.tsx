@@ -7,7 +7,12 @@ import {
   createEinheit,
 } from '../training/prefill'
 import { saveSession, loadSession, clearSession } from '../training/sessionPersistence'
-import { addSetToTraining, removeSetFromTraining } from '../training/trainingOps'
+import {
+  addSetToTraining,
+  removeSetFromTraining,
+  reindexRawInputsAfterRemove,
+  reindexDoneSetsAfterRemove,
+} from '../training/trainingOps'
 import { computeProgressionSuggestion, getFirstSetRepsForExercise, computeRestFromSet } from '../training/progression'
 import {
   addExerciseToPlan,
@@ -69,7 +74,6 @@ function notifyTimerDone(exerciseName: string) {
     new Notification('Pause vorbei! 💪', {
       body: `${exerciseName} — bereit für den nächsten Satz`,
       tag: 'gym-rest-timer',
-      renotify: true,
     })
   }
 }
@@ -103,7 +107,13 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
         setRawInputs(saved.rawInputs)
         setDoneSets(new Set(saved.doneSets))
       } else {
-        setExercises(prefill)
+        // Neues Training: Felder starten leer (0) — nur die Satz-Anzahl
+        // kommt aus dem Plan bzw. der letzten Einheit. Die Werte der
+        // letzten Einheit fließen nur in den Progressions-Vorschlag ein.
+        setExercises(prefill.map(ex => ({
+          ...ex,
+          sets: ex.sets.map(() => ({ reps: 0, weightKg: 0 })),
+        })))
       }
       requestNotificationPermission()
 
@@ -215,6 +225,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
 
   function handleSetDone(exIdx: number, setIdx: number, exerciseId: string) {
     const key = `${exIdx}-${setIdx}`
+    const wasDone = doneSets.has(key)
     const set = exercises[exIdx]?.sets[setIdx]
     setDoneSets(prev => {
       const next = new Set(prev)
@@ -222,7 +233,8 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
       next.add(key)
       return next
     })
-    if (set) startRestTimer(exerciseId, set.reps, set.weightKg)
+    // Timer nur beim Abschließen starten, nicht beim Zurücknehmen
+    if (!wasDone && set) startRestTimer(exerciseId, set.reps, set.weightKg)
   }
 
   async function handleAddSet(exIdx: number) {
@@ -234,18 +246,34 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
   }
 
   async function handleRemoveSet(exIdx: number, setIdx: number) {
+    const ex = exercises[exIdx]
+    if (!ex || ex.sets.length <= 1) return
     setExercises(prev => removeSetFromTraining(prev, exIdx, setIdx))
+    setRawInputs(prev => reindexRawInputsAfterRemove(prev, exIdx, setIdx))
+    setDoneSets(prev => reindexDoneSetsAfterRemove(prev, exIdx, setIdx))
     if (!plan) return
-    const exerciseId = exercises[exIdx].exerciseId
-    const pe = plan.exercises.find(e => e.exerciseId === exerciseId)
-    if (pe && pe.sets > 1) await savePlan(updatePlanExercise(plan, exerciseId, { sets: pe.sets - 1 }))
+    const pe = plan.exercises.find(e => e.exerciseId === ex.exerciseId)
+    if (pe && pe.sets > 1) await savePlan(updatePlanExercise(plan, ex.exerciseId, { sets: pe.sets - 1 }))
   }
 
   async function handlePickerSelect(exerciseId: string) {
     if (!plan || !pickerMode) return
     if (pickerMode.type === 'swap') {
       const { exIdx, oldExerciseId } = pickerMode
-      setExercises(prev => prev.map((ex, i) => i === exIdx ? { ...ex, exerciseId } : ex))
+      // Andere Übung → alte Werte und Häkchen gelten nicht mehr
+      setExercises(prev => prev.map((ex, i) =>
+        i === exIdx
+          ? { exerciseId, sets: ex.sets.map(() => ({ reps: 0, weightKg: 0 })) }
+          : ex,
+      ))
+      setRawInputs(prev => {
+        const next = { ...prev }
+        for (const key of Object.keys(next)) {
+          if (key.startsWith(`${exIdx}-`)) delete next[key]
+        }
+        return next
+      })
+      setDoneSets(prev => new Set([...prev].filter(key => !key.startsWith(`${exIdx}-`))))
       await savePlan(swapExerciseInPlan(plan, oldExerciseId, exerciseId))
     } else {
       const ex = catalog.find(e => e.id === exerciseId)
@@ -254,7 +282,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
       })
       const prefillEx: CompletedExercise = {
         exerciseId,
-        sets: Array.from({ length: newPe.sets }, () => ({ reps: newPe.startReps, weightKg: newPe.startWeightKg })),
+        sets: Array.from({ length: newPe.sets }, () => ({ reps: 0, weightKg: 0 })),
       }
       setExercises(prev => [...prev, prefillEx])
       await savePlan(addExerciseToPlan(plan, newPe))
@@ -363,7 +391,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
                 </div>
               )}
 
-              {ex.sets.map((s, setIdx) => {
+              {ex.sets.map((_, setIdx) => {
                 const key = `${exIdx}-${setIdx}`
                 const done = doneSets.has(key)
                 return (

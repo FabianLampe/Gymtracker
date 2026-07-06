@@ -22,3 +22,38 @@ export function removeSetFromTraining(
     return { ...ex, sets: ex.sets.filter((_, si) => si !== setIdx) }
   })
 }
+
+// Eingabe-Rohtexte sind mit `${exIdx}-${setIdx}-${field}` verschlüsselt.
+// Nach dem Entfernen eines Satzes rücken höhere Satz-Indizes nach.
+export function reindexRawInputsAfterRemove(
+  rawInputs: Record<string, string>,
+  exIdx: number,
+  setIdx: number,
+): Record<string, string> {
+  const next: Record<string, string> = {}
+  for (const [key, val] of Object.entries(rawInputs)) {
+    const [ei, si, field] = key.split('-')
+    const e = Number(ei)
+    const s = Number(si)
+    if (e !== exIdx) { next[key] = val; continue }
+    if (s === setIdx) continue
+    next[`${e}-${s > setIdx ? s - 1 : s}-${field}`] = val
+  }
+  return next
+}
+
+// Fertig-Markierungen sind mit `${exIdx}-${setIdx}` verschlüsselt.
+export function reindexDoneSetsAfterRemove(
+  doneSets: Set<string>,
+  exIdx: number,
+  setIdx: number,
+): Set<string> {
+  const next = new Set<string>()
+  for (const key of doneSets) {
+    const [e, s] = key.split('-').map(Number)
+    if (e !== exIdx) { next.add(key); continue }
+    if (s === setIdx) continue
+    next.add(`${e}-${s > setIdx ? s - 1 : s}`)
+  }
+  return next
+}
