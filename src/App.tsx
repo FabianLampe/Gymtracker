@@ -16,7 +16,7 @@ type AppScreen =
   | { name: 'plan-list' }
   | { name: 'plan-editor'; planId: string }
   | { name: 'exercise-catalog' }
-  | { name: 'training'; planId: string }
+  | { name: 'training'; planId: string; resume?: boolean }
   | { name: 'history' }
   | { name: 'progression'; exerciseId?: string }
   | { name: 'einheit-editor'; einheitId: string }
@@ -63,7 +63,7 @@ function App() {
     const saved = loadSession()
     if (saved) {
       window.history.pushState({ depth: 1 }, '')
-      setScreen({ name: 'training', planId: saved.planId })
+      setScreen({ name: 'training', planId: saved.planId, resume: true })
     }
   }, [])
 
@@ -121,6 +121,7 @@ function App() {
       {screen.name === 'training' && (
         <TrainingScreen
           planId={screen.planId}
+          resumeSession={screen.resume ?? false}
           onFinish={() => { window.history.back(); setScreen({ name: 'history' }) }}
           onCancel={() => goBack({ name: 'plan-list' })}
         />

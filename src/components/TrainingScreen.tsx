@@ -43,6 +43,8 @@ interface TimerState {
 
 interface Props {
   planId: string
+  // true nur beim automatischen Wiedereinstieg nach versehentlichem Schließen
+  resumeSession?: boolean
   onFinish: () => void
   onCancel: () => void
 }
@@ -89,7 +91,7 @@ function notifyTimerDone(exerciseName: string) {
   }
 }
 
-export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
+export function TrainingScreen({ planId, resumeSession = false, onFinish, onCancel }: Props) {
   const [plan, setPlan] = useState<Plan | null>(null)
   const [catalog, setCatalog] = useState<Exercise[]>([])
   const [exercises, setExercises] = useState<CompletedExercise[]>([])
@@ -112,14 +114,16 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
       const last = lastEinheitForPlan(einheiten, planId)
       const prefill = last ? buildPrefillFromLastEinheit(found, last) : buildPrefillFromPlan(found)
       setPlan(found)
-      const saved = loadSession()
+      const saved = resumeSession ? loadSession() : null
       if (saved && saved.planId === planId) {
         setExercises(saved.exercises)
         setRawInputs(saved.rawInputs)
         setDoneSets(new Set(saved.doneSets))
       } else {
-        // Neues Training: Werte der letzten Einheit (bzw. Plan-Startwerte)
-        // stehen sichtbar in den Feldern und können frei geändert werden
+        // Explizit gestartetes Training: eine evtl. verwaiste Session
+        // verwerfen und frisch beginnen. Werte der letzten Einheit
+        // (bzw. Plan-Startwerte) stehen sichtbar in den Feldern.
+        clearSession()
         setExercises(prefill)
         setRawInputs(buildRawInputs(prefill))
       }
@@ -142,7 +146,7 @@ export function TrainingScreen({ planId, onFinish, onCancel }: Props) {
       }
       setSuggestions(computed)
     })
-  }, [planId])
+  }, [planId, resumeSession])
 
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
