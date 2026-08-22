@@ -5,6 +5,7 @@ import {
   reindexRawInputsAfterRemove,
   reindexDoneSetsAfterRemove,
   stripEmptySets,
+  applyWeightSuggestion,
 } from '../trainingOps'
 import type { CompletedExercise } from '../../db/types'
 
@@ -139,5 +140,56 @@ describe('stripEmptySets', () => {
     const input = [{ exerciseId: 'ex-1', sets: [{ reps: 0, weightKg: 0 }] }]
     stripEmptySets(input)
     expect(input[0].sets).toHaveLength(1)
+  })
+})
+
+describe('applyWeightSuggestion', () => {
+  it('setzt den ersten Satz auf neues Gewicht und Zielwiederholungen', () => {
+    const result = applyWeightSuggestion([{ reps: 12, weightKg: 60 }], 62.5, 10)
+    expect(result[0]).toEqual({ reps: 10, weightKg: 62.5 })
+  })
+
+  it('behält das Back-off-Muster: Folgesätze wandern um denselben Betrag mit', () => {
+    const result = applyWeightSuggestion(
+      [{ reps: 10, weightKg: 60 }, { reps: 9, weightKg: 55 }, { reps: 8, weightKg: 50 }],
+      62.5, 10,
+    )
+    expect(result).toEqual([
+      { reps: 10, weightKg: 62.5 },
+      { reps: 9, weightKg: 57.5 },
+      { reps: 8, weightKg: 52.5 },
+    ])
+  })
+
+  it('lässt die Wiederholungen der Folgesätze unangetastet', () => {
+    const result = applyWeightSuggestion(
+      [{ reps: 10, weightKg: 40 }, { reps: 6, weightKg: 40 }], 45, 10,
+    )
+    expect(result[1].reps).toBe(6)
+    expect(result[1].weightKg).toBe(45)
+  })
+
+  it('rundet Gleitkomma-Reste weg', () => {
+    const result = applyWeightSuggestion(
+      [{ reps: 10, weightKg: 0.3 }, { reps: 8, weightKg: 0.1 }], 0.4, 10,
+    )
+    expect(result[1].weightKg).toBe(0.2)
+  })
+
+  it('geht nicht unter 0 kg', () => {
+    const result = applyWeightSuggestion(
+      [{ reps: 10, weightKg: 5 }, { reps: 8, weightKg: 1 }], 2.5, 10,
+    )
+    expect(result[1].weightKg).toBe(0)
+  })
+
+  it('kommt mit einer leeren Satzliste klar', () => {
+    expect(applyWeightSuggestion([], 60, 10)).toEqual([])
+  })
+
+  it('lässt die Eingabe unverändert', () => {
+    const input = [{ reps: 10, weightKg: 60 }, { reps: 9, weightKg: 55 }]
+    applyWeightSuggestion(input, 62.5, 10)
+    expect(input).toEqual([{ reps: 10, weightKg: 60 }, { reps: 9, weightKg: 55 }])
   })
 })

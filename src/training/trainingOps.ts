@@ -1,4 +1,27 @@
-import type { CompletedExercise } from '../db/types'
+import type { CompletedExercise, CompletedSet } from '../db/types'
+
+// Gewichte in 0,5-/2,5-kg-Schritten — Nachkommastellen aus Gleitkomma-Addition abschneiden.
+function roundWeight(kg: number): number {
+  return Math.round(kg * 1000) / 1000
+}
+
+// Steigerungs-Vorschlag annehmen: Der erste Satz (Arbeitssatz) geht auf das neue
+// Gewicht und die Zielwiederholungen. Folgesätze behalten ihre Wiederholungen und
+// wandern um denselben Betrag mit — ein Back-off-Muster (z. B. 60/55/50) bleibt
+// als Muster erhalten (62,5/57,5/52,5), statt eingeebnet zu werden.
+export function applyWeightSuggestion(
+  sets: CompletedSet[],
+  newWeightKg: number,
+  targetReps: number,
+): CompletedSet[] {
+  if (sets.length === 0) return sets
+  const delta = newWeightKg - sets[0].weightKg
+  return sets.map((s, i) =>
+    i === 0
+      ? { reps: targetReps, weightKg: roundWeight(newWeightKg) }
+      : { reps: s.reps, weightKg: roundWeight(Math.max(0, s.weightKg + delta)) },
+  )
+}
 
 // Beim Beenden: Sätze ohne Wiederholungen zählen nicht als absolviert (z. B. ein
 // geleertes Feld). Gewicht 0 bleibt gültig — Körpergewichts-Übungen ohne Zusatz.

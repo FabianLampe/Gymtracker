@@ -14,6 +14,7 @@ import {
   reindexRawInputsAfterRemove,
   reindexDoneSetsAfterRemove,
   stripEmptySets,
+  applyWeightSuggestion,
 } from '../training/trainingOps'
 import {
   computeProgressionSuggestion,
@@ -332,22 +333,17 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
   function handleAcceptSuggestion(exerciseId: string, newWeightKg: number) {
     const targetReps = plan?.exercises.find(pe => pe.exerciseId === exerciseId)?.targetReps ?? 10
     const exIdx = exercises.findIndex(ex => ex.exerciseId === exerciseId)
-    if (exIdx >= 0) {
-      const numSets = exercises[exIdx].sets.length
-      const newRaws: Record<string, string> = {}
-      for (let si = 0; si < numSets; si++) {
-        newRaws[`${exIdx}-${si}-reps`] = String(targetReps)
-        newRaws[`${exIdx}-${si}-weightKg`] = String(newWeightKg)
-      }
-      setRawInputs(r => ({ ...r, ...newRaws }))
-    }
-    setExercises(prev =>
-      prev.map(ex =>
-        ex.exerciseId === exerciseId
-          ? { ...ex, sets: ex.sets.map(() => ({ reps: targetReps, weightKg: newWeightKg })) }
-          : ex,
-      ),
-    )
+    if (exIdx < 0) return
+    const updatedSets = applyWeightSuggestion(exercises[exIdx].sets, newWeightKg, targetReps)
+    setExercises(prev => prev.map((ex, i) => i === exIdx ? { ...ex, sets: updatedSets } : ex))
+    setRawInputs(r => {
+      const next = { ...r }
+      updatedSets.forEach((s, si) => {
+        next[`${exIdx}-${si}-reps`] = String(s.reps)
+        next[`${exIdx}-${si}-weightKg`] = String(s.weightKg)
+      })
+      return next
+    })
     setSuggestions(prev => { const next = { ...prev }; delete next[exerciseId]; return next })
   }
 
