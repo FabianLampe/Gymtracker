@@ -20,5 +20,12 @@ export function importState(json: string): AppState | { error: string } {
   if (obj['version'] !== CURRENT_VERSION) {
     return { error: `Unbekannte Version: ${String(obj['version'])}` }
   }
+  // Ohne diese Prüfung würde der Import über undefined-Listen laufen und
+  // stillschweigend abbrechen, statt eine Rückmeldung zu geben.
+  for (const key of ['exercises', 'plans', 'einheiten'] as const) {
+    if (!Array.isArray(obj[key])) {
+      return { error: `Feld „${key}" fehlt oder ist keine Liste` }
+    }
+  }
   return parsed as AppState
 }

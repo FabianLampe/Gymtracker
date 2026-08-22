@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { indexedDbRepository } from '../db/indexeddb'
 import { createExercise } from '../exercises/exercise'
-import type { Exercise } from '../db/types'
+import type { Einheit, Exercise, Plan } from '../db/types'
 import styles from './ExerciseCatalog.module.css'
 
 const GROUP_ORDER = ['Brust', 'Rücken', 'Schultern', 'Bizeps', 'Trizeps', 'Beine', 'Bauch']
@@ -34,9 +34,20 @@ export function ExerciseCatalog({ onViewProgression }: Props) {
   const [newGroup, setNewGroup] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
+  const [plans, setPlans] = useState<Plan[]>([])
+  const [einheiten, setEinheiten] = useState<Einheit[]>([])
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; msg: string } | null>(null)
 
   useEffect(() => {
-    indexedDbRepository.getExercises().then(setExercises)
+    Promise.all([
+      indexedDbRepository.getExercises(),
+      indexedDbRepository.getPlans(),
+      indexedDbRepository.getEinheiten(),
+    ]).then(([exs, ps, es]) => {
+      setExercises(exs)
+      setPlans(ps)
+      setEinheiten(es)
+    })
   }, [])
 
   const filtered = search.trim()
@@ -79,9 +90,38 @@ export function ExerciseCatalog({ onViewProgression }: Props) {
     setEditingId(null)
   }
 
+  // Eine gelöschte Übung würde in Plänen und Einheiten als toter Verweis
+  // zurückbleiben — deshalb erst nachsehen, wo sie verwendet wird, und
+  // im Zweifel eine zweite Bestätigung verlangen.
+  function usageOf(id: string): string | null {
+    const inPlans = plans.filter(p => p.exercises.some(pe => pe.exerciseId === id)).length
+    const inEinheiten = einheiten.filter(e => e.exercises.some(ex => ex.exerciseId === id)).length
+    if (inPlans === 0 && inEinheiten === 0) return null
+    const parts: string[] = []
+    if (inPlans > 0) parts.push(`${inPlans} Plan${inPlans === 1 ? '' : 'en'}`)
+    if (inEinheiten > 0) parts.push(`${inEinheiten} Einheit${inEinheiten === 1 ? '' : 'en'}`)
+    return `Wird in ${parts.join(' und ')} verwendet. Wirklich löschen?`
+  }
+
   async function handleDelete(id: string) {
+    const usage = usageOf(id)
+    if (usage && pendingDelete?.id !== id) {
+      setPendingDelete({ id, msg: usage })
+      return
+    }
+    // Aus allen Plänen entfernen, damit dort kein toter Verweis stehen bleibt.
+    for (const plan of plans) {
+      if (!plan.exercises.some(pe => pe.exerciseId === id)) continue
+      const updated: Plan = {
+        ...plan,
+        exercises: plan.exercises.filter(pe => pe.exerciseId !== id).map((pe, i) => ({ ...pe, order: i })),
+      }
+      await indexedDbRepository.savePlan(updated)
+      setPlans(prev => prev.map(p => p.id === plan.id ? updated : p))
+    }
     await indexedDbRepository.deleteExercise(id)
     setExercises(prev => prev.filter(e => e.id !== id))
+    setPendingDelete(null)
   }
 
   return (
@@ -130,6 +170,10 @@ export function ExerciseCatalog({ onViewProgression }: Props) {
             <button className={styles.cancelButton} onClick={() => { setIsAdding(false); setNewName(''); setNewGroup('') }}>Abbrechen</button>
           </div>
         </div>
+      )}
+
+      {pendingDelete && (
+        <p className={styles.deleteWarning}>{pendingDelete.msg}</p>
       )}
 
       {filtered.length === 0 && !isAdding && (
@@ -183,7 +227,7 @@ export function ExerciseCatalog({ onViewProgression }: Props) {
                           className={styles.iconButton}
                           onClick={() => handleDelete(ex.id)}
                           aria-label={`${ex.name} löschen`}
-                        >✕</button>
+                        >{pendingDelete?.id === ex.id ? 'Sicher?' : '✕'}</button>
                       </div>
                     ) : (
                       <span className={styles.seededBadge}>Standard</span>

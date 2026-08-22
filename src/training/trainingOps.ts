@@ -1,5 +1,14 @@
 import type { CompletedExercise } from '../db/types'
 
+// Beim Beenden: Sätze ohne Wiederholungen zählen nicht als absolviert (z. B. ein
+// geleertes Feld). Gewicht 0 bleibt gültig — Körpergewichts-Übungen ohne Zusatz.
+// Übungen ohne verbleibende Sätze fallen ganz aus der Einheit.
+export function stripEmptySets(exercises: CompletedExercise[]): CompletedExercise[] {
+  return exercises
+    .map(ex => ({ ...ex, sets: ex.sets.filter(s => s.reps > 0) }))
+    .filter(ex => ex.sets.length > 0)
+}
+
 export function addSetToTraining(
   exercises: CompletedExercise[],
   exIdx: number,

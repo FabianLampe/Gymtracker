@@ -33,16 +33,21 @@ export function SettingsScreen({ onBack }: Props) {
   }
 
   async function handleImportFile(file: File) {
-    const text = await file.text()
-    const result = importState(text)
-    if ('error' in result) {
-      setFeedback({ type: 'error', msg: result.error })
-      return
+    try {
+      const text = await file.text()
+      const result = importState(text)
+      if ('error' in result) {
+        setFeedback({ type: 'error', msg: result.error })
+        return
+      }
+      for (const ex of result.exercises) await indexedDbRepository.saveExercise(ex)
+      for (const p of result.plans) await indexedDbRepository.savePlan(p)
+      for (const e of result.einheiten) await indexedDbRepository.saveEinheit(e)
+      setFeedback({ type: 'success', msg: `Import erfolgreich: ${result.exercises.length} Übungen, ${result.plans.length} Pläne, ${result.einheiten.length} Einheiten.` })
+    } catch (err) {
+      // Ohne diesen Zweig bliebe der Bildschirm bei einer kaputten Datei stumm.
+      setFeedback({ type: 'error', msg: `Import fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}` })
     }
-    for (const ex of result.exercises) await indexedDbRepository.saveExercise(ex)
-    for (const p of result.plans) await indexedDbRepository.savePlan(p)
-    for (const e of result.einheiten) await indexedDbRepository.saveEinheit(e)
-    setFeedback({ type: 'success', msg: `Import erfolgreich: ${result.exercises.length} Übungen, ${result.plans.length} Pläne, ${result.einheiten.length} Einheiten.` })
   }
 
   return (

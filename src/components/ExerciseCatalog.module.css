@@ -188,3 +188,14 @@
   margin-top: 3rem;
   font-size: 0.9rem;
 }
+
+.deleteWarning {
+  margin: 0 1rem 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}

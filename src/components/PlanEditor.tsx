@@ -57,14 +57,32 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
     await savePlan(moveExerciseInPlan(plan, index, index + direction))
   }
 
+  // Untergrenzen je Feld: ohne sie ließen sich „0 Sätze" oder „0 kg Schrittweite"
+  // speichern — der Plan wäre dann unbenutzbar.
+  const FIELD_MIN: Record<string, number> = {
+    sets: 1, targetReps: 1, stepWeightKg: 0.5, startWeightKg: 0, restSeconds: 10,
+  }
+
   async function handleSetting(
     exerciseId: string,
     field: keyof Omit<PlanExercise, 'exerciseId' | 'order'>,
     raw: string,
+    input: HTMLInputElement,
   ) {
     if (!plan) return
-    const value = parseFloat(raw)
-    if (isNaN(value) || value < 0) return
+    const pe = plan.exercises.find(e => e.exerciseId === exerciseId)
+    if (!pe) return
+    const min = FIELD_MIN[field] ?? 0
+    const parsed = parseFloat(raw)
+    const isWhole = field === 'sets' || field === 'targetReps'
+    const value = isWhole ? Math.round(parsed) : parsed
+    if (isNaN(value) || value < min) {
+      // Ungültige Eingabe (leer, 0, negativ): alten Wert wieder anzeigen,
+      // damit Feld und gespeicherter Wert nicht auseinanderlaufen.
+      input.value = String(pe[field])
+      return
+    }
+    input.value = String(value)
     await savePlan(updatePlanExercise(plan, exerciseId, { [field]: value }))
   }
 
@@ -79,6 +97,7 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
       {showPicker && (
         <ExercisePicker
           exercises={exercises}
+          usedIds={plan?.exercises.map(pe => pe.exerciseId) ?? []}
           onSelect={handleAddExercise}
           onClose={() => setShowPicker(false)}
         />
@@ -112,7 +131,7 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
         )}
 
         {plan.exercises.map((pe, index) => (
-          <div key={pe.exerciseId} className={styles.exerciseCard}>
+          <div key={`${pe.exerciseId}-${index}`} className={styles.exerciseCard}>
             <div className={styles.cardHeader}>
               <span className={styles.exerciseName}>{exerciseName(pe.exerciseId)}</span>
               <div className={styles.cardActions}>
@@ -145,7 +164,7 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
                   min={1}
                   defaultValue={pe.sets}
                   key={`${pe.exerciseId}-sets`}
-                  onBlur={e => handleSetting(pe.exerciseId, 'sets', e.target.value)}
+                  onBlur={e => handleSetting(pe.exerciseId, 'sets', e.target.value, e.target)}
                 />
               </div>
 
@@ -157,7 +176,7 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
                   min={1}
                   defaultValue={pe.targetReps}
                   key={`${pe.exerciseId}-targetReps`}
-                  onBlur={e => handleSetting(pe.exerciseId, 'targetReps', e.target.value)}
+                  onBlur={e => handleSetting(pe.exerciseId, 'targetReps', e.target.value, e.target)}
                 />
               </div>
 
@@ -170,7 +189,7 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
                   step={0.5}
                   defaultValue={pe.startWeightKg}
                   key={`${pe.exerciseId}-startWeightKg`}
-                  onBlur={e => handleSetting(pe.exerciseId, 'startWeightKg', e.target.value)}
+                  onBlur={e => handleSetting(pe.exerciseId, 'startWeightKg', e.target.value, e.target)}
                 />
               </div>
 
@@ -183,7 +202,7 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
                   step={0.5}
                   defaultValue={pe.stepWeightKg}
                   key={`${pe.exerciseId}-stepWeightKg`}
-                  onBlur={e => handleSetting(pe.exerciseId, 'stepWeightKg', e.target.value)}
+                  onBlur={e => handleSetting(pe.exerciseId, 'stepWeightKg', e.target.value, e.target)}
                 />
               </div>
 
@@ -196,7 +215,7 @@ export function PlanEditor({ planId, onBack, onStartTraining }: Props) {
                   step={10}
                   defaultValue={pe.restSeconds}
                   key={`${pe.exerciseId}-restSeconds`}
-                  onBlur={e => handleSetting(pe.exerciseId, 'restSeconds', e.target.value)}
+                  onBlur={e => handleSetting(pe.exerciseId, 'restSeconds', e.target.value, e.target)}
                 />
               </div>
             </div>

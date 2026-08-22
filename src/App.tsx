@@ -18,13 +18,14 @@ type AppScreen =
   | { name: 'exercise-catalog' }
   | { name: 'training'; planId: string; resume?: boolean }
   | { name: 'history' }
-  | { name: 'progression'; exerciseId?: string }
+  | { name: 'progression' }
+  | { name: 'exercise-progression'; exerciseId: string }
   | { name: 'einheit-editor'; einheitId: string }
   | { name: 'settings' }
 
 // Screens, die einen Zurück-Button haben und per iOS-Wisch navigierbar sein sollen
 const DEEP_SCREENS = new Set<AppScreen['name']>([
-  'plan-editor', 'training', 'einheit-editor', 'settings',
+  'plan-editor', 'training', 'einheit-editor', 'settings', 'exercise-progression',
 ])
 
 function parentOf(screen: AppScreen): AppScreen {
@@ -32,12 +33,12 @@ function parentOf(screen: AppScreen): AppScreen {
   if (screen.name === 'training')       return { name: 'plan-list' }
   if (screen.name === 'einheit-editor') return { name: 'history' }
   if (screen.name === 'settings')       return { name: 'plan-list' }
-  if (screen.name === 'progression' && screen.exerciseId) return { name: 'exercise-catalog' }
+  if (screen.name === 'exercise-progression') return { name: 'exercise-catalog' }
   return screen
 }
 
 function screenToTab(screen: AppScreen): Tab {
-  if (screen.name === 'exercise-catalog') return 'exercises'
+  if (screen.name === 'exercise-catalog' || screen.name === 'exercise-progression') return 'exercises'
   if (screen.name === 'progression')      return 'progression'
   if (screen.name === 'history' || screen.name === 'einheit-editor') return 'history'
   return 'plans'
@@ -50,7 +51,9 @@ const TAB_SCREENS: Record<Tab, AppScreen> = {
   history:     { name: 'history' },
 }
 
-const HIDE_TABBAR: AppScreen['name'][] = ['plan-editor', 'training', 'einheit-editor', 'settings']
+const HIDE_TABBAR: AppScreen['name'][] = [
+  'plan-editor', 'training', 'einheit-editor', 'settings', 'exercise-progression',
+]
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>({ name: 'plan-list' })
@@ -115,7 +118,7 @@ function App() {
       )}
       {screen.name === 'exercise-catalog' && (
         <ExerciseCatalog
-          onViewProgression={exerciseId => goTo({ name: 'progression', exerciseId })}
+          onViewProgression={exerciseId => goTo({ name: 'exercise-progression', exerciseId })}
         />
       )}
       {screen.name === 'training' && (
@@ -131,10 +134,11 @@ function App() {
           onEditEinheit={einheitId => goTo({ name: 'einheit-editor', einheitId })}
         />
       )}
-      {screen.name === 'progression' && (
+      {screen.name === 'progression' && <ProgressionScreen />}
+      {screen.name === 'exercise-progression' && (
         <ProgressionScreen
           initialExerciseId={screen.exerciseId}
-          onBack={screen.exerciseId ? () => goBack({ name: 'exercise-catalog' }) : undefined}
+          onBack={() => goBack({ name: 'exercise-catalog' })}
         />
       )}
       {screen.name === 'einheit-editor' && (

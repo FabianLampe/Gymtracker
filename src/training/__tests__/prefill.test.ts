@@ -102,6 +102,46 @@ describe('buildPrefillFromLastEinheit', () => {
     expect(result[0].sets).toEqual(lastEinheit.exercises[0].sets.map(s => ({ ...s })))
   })
 
+  it('folgt der Satzzahl des Plans, wenn sie erhöht wurde', () => {
+    const planMehrSaetze: Plan = {
+      ...plan2,
+      exercises: [
+        createPlanExercise('ex-1', 0, { sets: 5, startWeightKg: 60, startReps: 5 }),
+        ...plan2.exercises.slice(1),
+      ],
+    }
+    const result = buildPrefillFromLastEinheit(planMehrSaetze, lastEinheit)
+    expect(result[0].sets).toHaveLength(5)
+    // Die letzten beiden Sätze übernehmen die Werte des letzten gemachten Satzes
+    expect(result[0].sets[3]).toEqual({ reps: 3, weightKg: 75 })
+    expect(result[0].sets[4]).toEqual({ reps: 3, weightKg: 75 })
+  })
+
+  it('folgt der Satzzahl des Plans, wenn sie verringert wurde', () => {
+    const planWenigerSaetze: Plan = {
+      ...plan2,
+      exercises: [
+        createPlanExercise('ex-1', 0, { sets: 2, startWeightKg: 60, startReps: 5 }),
+        ...plan2.exercises.slice(1),
+      ],
+    }
+    const result = buildPrefillFromLastEinheit(planWenigerSaetze, lastEinheit)
+    expect(result[0].sets).toEqual([
+      { reps: 5, weightKg: 80 },
+      { reps: 4, weightKg: 80 },
+    ])
+  })
+
+  it('fällt auf Plan-Startwerte zurück, wenn die letzte Einheit keine Sätze hat', () => {
+    const leer: Einheit = {
+      ...lastEinheit,
+      exercises: [{ exerciseId: 'ex-1', sets: [] }],
+    }
+    const result = buildPrefillFromLastEinheit(plan2, leer)
+    expect(result[0].sets).toHaveLength(3)
+    expect(result[0].sets[0]).toEqual({ reps: 5, weightKg: 60 })
+  })
+
   it('fällt auf Plan-Startwerte zurück wenn Übung in letzter Einheit fehlt', () => {
     const planWithNew: Plan = {
       ...plan2,
@@ -154,5 +194,32 @@ describe('lastEinheitForPlan', () => {
       { id: 'e4', planId: 'p-a', date: '2026-04-01', exercises: [] },
     ]
     expect(lastEinheitForPlan(withThree, 'p-a')?.id).toBe('e2')
+  })
+
+  it('entscheidet bei gleichem Datum über createdAt (nicht über die Lesereihenfolge)', () => {
+    const sameDay: Einheit[] = [
+      { id: 'a', planId: 'p-a', date: '2026-06-01', createdAt: '2026-06-01T08:00:00.000Z', exercises: [] },
+      { id: 'b', planId: 'p-a', date: '2026-06-01', createdAt: '2026-06-01T18:00:00.000Z', exercises: [] },
+    ]
+    expect(lastEinheitForPlan(sameDay, 'p-a')?.id).toBe('b')
+    expect(lastEinheitForPlan([...sameDay].reverse(), 'p-a')?.id).toBe('b')
+  })
+
+  it('ist auch ohne createdAt stabil (Alt-Daten)', () => {
+    const sameDay: Einheit[] = [
+      { id: 'a', planId: 'p-a', date: '2026-06-01', exercises: [] },
+      { id: 'b', planId: 'p-a', date: '2026-06-01', exercises: [] },
+    ]
+    const first = lastEinheitForPlan(sameDay, 'p-a')?.id
+    const second = lastEinheitForPlan([...sameDay].reverse(), 'p-a')?.id
+    expect(first).toBe(second)
+  })
+})
+
+describe('createEinheit', () => {
+  it('setzt createdAt als Zeitstempel', () => {
+    const e = createEinheit('p1', [], '2026-06-04')
+    expect(e.createdAt).toBeTruthy()
+    expect(Number.isNaN(Date.parse(e.createdAt!))).toBe(false)
   })
 })

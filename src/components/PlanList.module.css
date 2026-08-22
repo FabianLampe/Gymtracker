@@ -154,3 +154,13 @@
   font-size: 0.9rem;
   line-height: 1.7;
 }
+
+.iconButton.deleteConfirm {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-hover);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}

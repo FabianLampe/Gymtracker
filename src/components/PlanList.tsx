@@ -16,6 +16,7 @@ export function PlanList({ onOpenPlan, onOpenSettings }: Props) {
   const [newName, setNewName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const addInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -47,9 +48,15 @@ export function PlanList({ onOpenPlan, onOpenSettings }: Props) {
     setEditingId(null)
   }
 
+  // Zwei Schritte: ein Fehltipp darf keinen Plan mitsamt seiner Historie-Zuordnung kosten.
   async function handleDelete(id: string) {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      return
+    }
     await indexedDbRepository.deletePlan(id)
     setPlans(prev => prev.filter(p => p.id !== id))
+    setConfirmDeleteId(null)
   }
 
   function startEditing(plan: Plan) {
@@ -63,7 +70,7 @@ export function PlanList({ onOpenPlan, onOpenSettings }: Props) {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} onClick={() => setConfirmDeleteId(null)}>
       <div className={styles.appHeader}>
         <Logo size={34} />
         <span className={styles.appName}>Gymtracker</span>
@@ -133,7 +140,7 @@ export function PlanList({ onOpenPlan, onOpenSettings }: Props) {
                 >
                   {plan.name} ›
                 </span>
-                <div className={styles.actions}>
+                <div className={styles.actions} onClick={e => e.stopPropagation()}>
                   <button
                     className={styles.iconButton}
                     onClick={() => startEditing(plan)}
@@ -142,11 +149,11 @@ export function PlanList({ onOpenPlan, onOpenSettings }: Props) {
                     ✎
                   </button>
                   <button
-                    className={styles.iconButton}
+                    className={`${styles.iconButton} ${confirmDeleteId === plan.id ? styles.deleteConfirm : ''}`}
                     onClick={() => handleDelete(plan.id)}
                     aria-label={`${plan.name} löschen`}
                   >
-                    ✕
+                    {confirmDeleteId === plan.id ? 'Sicher?' : '✕'}
                   </button>
                 </div>
               </>

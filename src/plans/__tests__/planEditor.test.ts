@@ -6,6 +6,7 @@ import {
   removeExerciseFromPlan,
   moveExerciseInPlan,
   updatePlanExercise,
+  planContainsExercise,
 } from '../planEditor'
 import type { Plan } from '../../db/types'
 
@@ -170,5 +171,37 @@ describe('swapExerciseInPlan', () => {
   it('lässt andere Übungen unberührt', () => {
     const result = swapExerciseInPlan(planWith2, 'ex-1', 'ex-neu')
     expect(result.exercises.find(e => e.exerciseId === 'ex-2')).toBeDefined()
+  })
+})
+
+describe('Duplikat-Schutz', () => {
+  it('addExerciseToPlan fügt eine schon enthaltene Übung nicht erneut hinzu', () => {
+    const plan: Plan = { id: 'p1', name: 'Push', exercises: [] }
+    const pe = createPlanExercise('ex-1', 0)
+    const once = addExerciseToPlan(plan, pe)
+    const twice = addExerciseToPlan(once, createPlanExercise('ex-1', 1))
+    expect(twice.exercises).toHaveLength(1)
+    expect(twice).toBe(once)
+  })
+
+  it('swapExerciseInPlan tauscht nicht auf eine Übung, die schon im Plan steht', () => {
+    const plan: Plan = {
+      id: 'p1', name: 'Push',
+      exercises: [createPlanExercise('ex-1', 0), createPlanExercise('ex-2', 1)],
+    }
+    const result = swapExerciseInPlan(plan, 'ex-1', 'ex-2')
+    expect(result).toBe(plan)
+  })
+
+  it('swapExerciseInPlan auf sich selbst ist erlaubt', () => {
+    const plan: Plan = { id: 'p1', name: 'Push', exercises: [createPlanExercise('ex-1', 0)] }
+    const result = swapExerciseInPlan(plan, 'ex-1', 'ex-1')
+    expect(result.exercises[0].exerciseId).toBe('ex-1')
+  })
+
+  it('planContainsExercise erkennt enthaltene Übungen', () => {
+    const plan: Plan = { id: 'p1', name: 'Push', exercises: [createPlanExercise('ex-1', 0)] }
+    expect(planContainsExercise(plan, 'ex-1')).toBe(true)
+    expect(planContainsExercise(plan, 'ex-2')).toBe(false)
   })
 })

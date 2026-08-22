@@ -19,11 +19,14 @@ function sortedGroups(groups: string[]): string[] {
 
 interface Props {
   exercises: Exercise[]
+  // Übungen, die im Plan schon vorkommen — werden als „schon im Plan" markiert
+  // und sind nicht wählbar (eine Übung darf pro Plan nur einmal stehen).
+  usedIds?: string[]
   onSelect: (exerciseId: string) => void
   onClose: () => void
 }
 
-export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
+export function ExercisePicker({ exercises, usedIds = [], onSelect, onClose }: Props) {
   const [search, setSearch] = useState('')
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState('')
@@ -45,6 +48,7 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
 
   const groups = sortedGroups(Object.keys(grouped))
   const existingGroups = [...new Set(localExercises.map(e => e.muscleGroup))]
+  const usedSet = new Set(usedIds)
 
   async function handleCreate() {
     const name = newName.trim()
@@ -85,15 +89,20 @@ export function ExercisePicker({ exercises, onSelect, onClose }: Props) {
         {groups.map(group => (
           <div key={group}>
             <p className={styles.groupTitle}>{group}</p>
-            {grouped[group].map(ex => (
-              <button
-                key={ex.id}
-                className={styles.exerciseButton}
-                onClick={() => onSelect(ex.id)}
-              >
-                {ex.name}
-              </button>
-            ))}
+            {grouped[group].map(ex => {
+              const used = usedSet.has(ex.id)
+              return (
+                <button
+                  key={ex.id}
+                  className={styles.exerciseButton}
+                  onClick={() => onSelect(ex.id)}
+                  disabled={used}
+                  style={used ? { opacity: 0.4 } : undefined}
+                >
+                  {ex.name}{used ? ' · schon im Plan' : ''}
+                </button>
+              )
+            })}
           </div>
         ))}
         <div style={{ height: '1rem' }} />

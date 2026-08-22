@@ -50,3 +50,20 @@ describe('importState', () => {
     expect('error' in result).toBe(true)
   })
 })
+
+describe('importState — Struktur-Prüfung', () => {
+  it('meldet fehlende Listen statt still zu scheitern', () => {
+    const result = importState(JSON.stringify({ version: 1 }))
+    expect(result).toHaveProperty('error')
+  })
+
+  it('meldet ein Feld, das keine Liste ist', () => {
+    const result = importState(JSON.stringify({ version: 1, exercises: [], plans: {}, einheiten: [] }))
+    expect(result).toHaveProperty('error')
+  })
+
+  it('akzeptiert einen vollständigen Export', () => {
+    const result = importState(JSON.stringify({ version: 1, exercises: [], plans: [], einheiten: [] }))
+    expect(result).not.toHaveProperty('error')
+  })
+})

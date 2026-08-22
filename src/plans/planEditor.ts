@@ -18,7 +18,14 @@ export function createPlanExercise(
   }
 }
 
+export function planContainsExercise(plan: Plan, exerciseId: string): boolean {
+  return plan.exercises.some(e => e.exerciseId === exerciseId)
+}
+
+// Eine Übung darf pro Plan nur einmal vorkommen: Einstellungen, Entfernen und
+// Vorschläge greifen über die exerciseId — ein Duplikat würde beide Einträge treffen.
 export function addExerciseToPlan(plan: Plan, planExercise: PlanExercise): Plan {
+  if (planContainsExercise(plan, planExercise.exerciseId)) return plan
   return { ...plan, exercises: [...plan.exercises, planExercise] }
 }
 
@@ -39,11 +46,13 @@ export function moveExerciseInPlan(plan: Plan, fromIndex: number, toIndex: numbe
   return { ...plan, exercises: exs.map((e, i) => ({ ...e, order: i })) }
 }
 
+// Tausch auf eine Übung, die schon im Plan steht, würde ein Duplikat erzeugen.
 export function swapExerciseInPlan(
   plan: Plan,
   oldExerciseId: string,
   newExerciseId: string,
 ): Plan {
+  if (oldExerciseId !== newExerciseId && planContainsExercise(plan, newExerciseId)) return plan
   return {
     ...plan,
     exercises: plan.exercises.map(pe =>

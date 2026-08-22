@@ -43,6 +43,9 @@ export interface Einheit {
   id: string
   planId: string
   date: string // ISO-8601 Datum, z. B. "2026-06-04"
+  // Zeitpunkt des Abschlusses (ISO-8601). Entscheidet die Reihenfolge, wenn
+  // mehrere Einheiten am selben Tag liegen. Optional: ältere Daten haben ihn nicht.
+  createdAt?: string
   exercises: CompletedExercise[]
 }
 

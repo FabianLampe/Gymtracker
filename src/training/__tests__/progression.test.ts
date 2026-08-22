@@ -1,15 +1,23 @@
 import { describe, it, expect } from 'vitest'
-import { computeProgressionSuggestion, getFirstSetRepsForExercise, computeRestFromSet } from '../progression'
+import {
+  computeProgressionSuggestion,
+  getFirstSetForExercise,
+  getFirstSetRepsForExercise,
+  computeRestFromSet,
+} from '../progression'
 import type { Einheit } from '../../db/types'
+
+// Hilfsfunktion: erster Satz einer Einheit als { reps, weightKg }
+const set = (reps: number, weightKg: number) => ({ reps, weightKg })
 
 describe('computeProgressionSuggestion', () => {
   it('gibt Vorschlag wenn 2× in Folge Ziel erreicht', () => {
-    const result = computeProgressionSuggestion([10, 10], 10, 80, 2.5)
+    const result = computeProgressionSuggestion([set(10, 80), set(10, 80)], 10, 80, 2.5)
     expect(result).toEqual({ newWeightKg: 82.5 })
   })
 
   it('gibt null wenn nur 1 Eintrag vorhanden', () => {
-    expect(computeProgressionSuggestion([10], 10, 80, 2.5)).toBeNull()
+    expect(computeProgressionSuggestion([set(10, 80)], 10, 80, 2.5)).toBeNull()
   })
 
   it('gibt null wenn Liste leer ist', () => {
@@ -17,20 +25,48 @@ describe('computeProgressionSuggestion', () => {
   })
 
   it('gibt null wenn neuester Satz das Ziel verfehlt', () => {
-    expect(computeProgressionSuggestion([9, 10], 10, 80, 2.5)).toBeNull()
+    expect(computeProgressionSuggestion([set(9, 80), set(10, 80)], 10, 80, 2.5)).toBeNull()
   })
 
   it('gibt null wenn vorheriger Satz das Ziel verfehlt', () => {
-    expect(computeProgressionSuggestion([10, 9], 10, 80, 2.5)).toBeNull()
+    expect(computeProgressionSuggestion([set(10, 80), set(9, 80)], 10, 80, 2.5)).toBeNull()
   })
 
   it('newWeightKg = currentWeightKg + stepWeightKg', () => {
-    const result = computeProgressionSuggestion([12, 12], 10, 100, 5)
+    const result = computeProgressionSuggestion([set(12, 100), set(12, 100)], 10, 100, 5)
     expect(result?.newWeightKg).toBe(105)
   })
 
   it('>=Ziel zählt (mehr als Ziel reicht)', () => {
-    expect(computeProgressionSuggestion([12, 11], 10, 80, 2.5)).toEqual({ newWeightKg: 82.5 })
+    expect(computeProgressionSuggestion([set(12, 80), set(11, 80)], 10, 80, 2.5))
+      .toEqual({ newWeightKg: 82.5 })
+  })
+
+  // ── Serie setzt bei Gewichtswechsel zurück ────────────────────────────
+  it('kein Vorschlag nach nur einer Einheit auf dem neuen Gewicht', () => {
+    // Vorletzte Einheit lief noch auf 80 kg, jetzt wird auf 82.5 trainiert
+    const result = computeProgressionSuggestion(
+      [set(10, 82.5), set(10, 80)], 10, 82.5, 2.5,
+    )
+    expect(result).toBeNull()
+  })
+
+  it('Vorschlag erst nach zwei Einheiten auf dem neuen Gewicht', () => {
+    const result = computeProgressionSuggestion(
+      [set(10, 82.5), set(10, 82.5)], 10, 82.5, 2.5,
+    )
+    expect(result).toEqual({ newWeightKg: 85 })
+  })
+
+  it('kein Vorschlag direkt nach einem Deload', () => {
+    // Vorher 80 kg, jetzt bewusst auf 70 kg reduziert
+    expect(computeProgressionSuggestion([set(12, 70), set(12, 80)], 10, 70, 2.5)).toBeNull()
+  })
+
+  it('rundungstolerant bei 2,5-kg-Schritten', () => {
+    const w = 0.1 + 0.2 // 0.30000000000000004
+    expect(computeProgressionSuggestion([set(10, w), set(10, w)], 10, 0.3, 2.5))
+      .not.toBeNull()
   })
 })
 
@@ -55,6 +91,14 @@ describe('getFirstSetRepsForExercise', () => {
 
   it('gibt null wenn Übung keine Sätze hat', () => {
     expect(getFirstSetRepsForExercise(einheit, 'ex-2')).toBeNull()
+  })
+
+  it('getFirstSetForExercise liefert Wdh und Gewicht', () => {
+    expect(getFirstSetForExercise(einheit, 'ex-1')).toEqual({ reps: 8, weightKg: 80 })
+  })
+
+  it('getFirstSetForExercise gibt null für unbekannte Übung', () => {
+    expect(getFirstSetForExercise(einheit, 'ex-unbekannt')).toBeNull()
   })
 })
 
@@ -122,5 +166,13 @@ describe('computeRestFromSet', () => {
 
   it('Körpergewicht 20 Wdh → 60 s', () => {
     expect(computeRestFromSet(20, 0)).toBe(60)
+  })
+
+  // Dokumentiert die Eigenart der Formel: Intensität = Gewicht / e1RM
+  // = 1 / (1 + Wdh/30) — das Gewicht kürzt sich heraus. Deshalb ist die
+  // Plan-Pause maßgeblich und diese Funktion nur Fallback.
+  it('Gewicht beeinflusst das Ergebnis nicht (Intensität hängt nur an den Wdh)', () => {
+    expect(computeRestFromSet(8, 20)).toBe(computeRestFromSet(8, 200))
+    expect(computeRestFromSet(3, 30)).toBe(computeRestFromSet(3, 300))
   })
 })

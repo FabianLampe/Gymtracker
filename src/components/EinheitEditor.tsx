@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { indexedDbRepository } from '../db/indexeddb'
+import { stripEmptySets } from '../training/trainingOps'
 import type { CompletedExercise, Einheit, Exercise } from '../db/types'
 import styles from './EinheitEditor.module.css'
 
@@ -54,12 +55,14 @@ export function EinheitEditor({ einheitId, onBack }: Props) {
 
   async function handleSave() {
     if (!einheit) return
-    await indexedDbRepository.updateEinheit({ ...einheit, exercises })
+    // Auf 0 gesetzte Wiederholungen zählen nicht als absolvierter Satz —
+    // sonst stünde eine 0 im Verlauf und im Progressions-Graph.
+    await indexedDbRepository.updateEinheit({ ...einheit, exercises: stripEmptySets(exercises) })
     onBack()
   }
 
   function exerciseName(id: string) {
-    return catalog.find(e => e.id === id)?.name ?? id
+    return catalog.find(e => e.id === id)?.name ?? 'Gelöschte Übung'
   }
 
   if (!einheit) return null
@@ -74,7 +77,7 @@ export function EinheitEditor({ einheitId, onBack }: Props) {
 
       <div className={styles.body}>
         {exercises.map((ex, exIdx) => (
-          <div key={ex.exerciseId} className={styles.exerciseBlock}>
+          <div key={`${ex.exerciseId}-${exIdx}`} className={styles.exerciseBlock}>
             <p className={styles.exerciseName}>{exerciseName(ex.exerciseId)}</p>
             {ex.sets.map((_, setIdx) => (
               <div key={setIdx} className={styles.setRow}>

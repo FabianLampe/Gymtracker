@@ -4,6 +4,7 @@ import {
   buildPrefillFromPlan,
   buildPrefillFromLastEinheit,
   lastEinheitForPlan,
+  sortEinheitenNewestFirst,
   createEinheit,
 } from '../training/prefill'
 import { saveSession, loadSession, clearSession } from '../training/sessionPersistence'
@@ -12,15 +13,21 @@ import {
   removeSetFromTraining,
   reindexRawInputsAfterRemove,
   reindexDoneSetsAfterRemove,
+  stripEmptySets,
 } from '../training/trainingOps'
-import { computeProgressionSuggestion, getFirstSetRepsForExercise, computeRestFromSet } from '../training/progression'
+import {
+  computeProgressionSuggestion,
+  getFirstSetForExercise,
+  computeRestFromSet,
+} from '../training/progression'
 import {
   addExerciseToPlan,
   createPlanExercise,
+  planContainsExercise,
   swapExerciseInPlan,
   updatePlanExercise,
 } from '../plans/planEditor'
-import type { CompletedExercise, Einheit, Exercise, Plan } from '../db/types'
+import type { CompletedExercise, CompletedSet, Einheit, Exercise, Plan } from '../db/types'
 import { ExercisePicker } from './ExercisePicker'
 import styles from './TrainingScreen.module.css'
 
@@ -39,6 +46,8 @@ interface TimerState {
   totalSeconds: number
   remaining: number
   endTime: number
+  // true, wenn die Pause aus dem Plan stammt (nicht aus der Wdh-Schätzung)
+  fromPlan: boolean
 }
 
 interface Props {
@@ -49,9 +58,16 @@ interface Props {
   onCancel: () => void
 }
 
+// Ein einziger AudioContext für die ganze Sitzung: Safari erlaubt nur eine
+// Handvoll gleichzeitig — pro Satz einen neuen anzulegen lässt den Ton
+// nach ein paar Sätzen verstummen.
+let audioCtx: AudioContext | null = null
+
 function playDoneBeep() {
   try {
-    const ctx = new AudioContext()
+    if (!audioCtx) audioCtx = new AudioContext()
+    const ctx = audioCtx
+    if (ctx.state === 'suspended') void ctx.resume()
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
     osc.connect(gain)
@@ -101,6 +117,7 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
   const [timer, setTimer] = useState<TimerState | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [rawInputs, setRawInputs] = useState<Record<string, string>>({})
+  const [planMissing, setPlanMissing] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -109,7 +126,7 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
       indexedDbRepository.getEinheiten(),
     ]).then(([plans, exs, einheiten]) => {
       const found = plans.find(p => p.id === planId)
-      if (!found) return
+      if (!found) { setPlanMissing(true); return }
       setCatalog(exs)
       const last = lastEinheitForPlan(einheiten, planId)
       const prefill = last ? buildPrefillFromLastEinheit(found, last) : buildPrefillFromPlan(found)
@@ -129,19 +146,17 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
       }
       requestNotificationPermission()
 
-      const planEinheiten = einheiten
-        .filter(e => e.planId === planId)
-        .sort((a, b) => b.date.localeCompare(a.date))
+      const planEinheiten = sortEinheitenNewestFirst(einheiten.filter(e => e.planId === planId))
       const computed: Record<string, { newWeightKg: number }> = {}
       for (const pe of found.exercises) {
-        const recentReps: number[] = []
+        const recentFirstSets: CompletedSet[] = []
         for (const e of planEinheiten) {
-          if (recentReps.length >= 2) break
-          const reps = getFirstSetRepsForExercise(e, pe.exerciseId)
-          if (reps !== null) recentReps.push(reps)
+          if (recentFirstSets.length >= 2) break
+          const set = getFirstSetForExercise(e, pe.exerciseId)
+          if (set !== null) recentFirstSets.push(set)
         }
         const currentWeight = prefill.find(ex => ex.exerciseId === pe.exerciseId)?.sets[0]?.weightKg ?? pe.startWeightKg
-        const s = computeProgressionSuggestion(recentReps, pe.targetReps, currentWeight, pe.stepWeightKg)
+        const s = computeProgressionSuggestion(recentFirstSets, pe.targetReps, currentWeight, pe.stepWeightKg)
         if (s) computed[pe.exerciseId] = s
       }
       setSuggestions(computed)
@@ -183,11 +198,15 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
   }, [])
 
   function startRestTimer(exerciseId: string, reps: number, weightKg: number) {
-    const restSeconds = computeRestFromSet(reps, weightKg)
+    // Die im Plan hinterlegte Pause gewinnt — sie ist die bewusste Einstellung.
+    // Nur wenn keine da ist (z. B. spontan hinzugefügte Übung), wird geschätzt.
+    const planRest = plan?.exercises.find(pe => pe.exerciseId === exerciseId)?.restSeconds
+    const fromPlan = typeof planRest === 'number' && planRest > 0
+    const restSeconds = fromPlan ? planRest : computeRestFromSet(reps, weightKg)
     const name = catalog.find(e => e.id === exerciseId)?.name ?? ''
     if (timerRef.current) clearInterval(timerRef.current)
     const endTime = Date.now() + restSeconds * 1000
-    setTimer({ exerciseName: name, restSeconds, totalSeconds: restSeconds, remaining: restSeconds, endTime })
+    setTimer({ exerciseName: name, restSeconds, totalSeconds: restSeconds, remaining: restSeconds, endTime, fromPlan })
     timerRef.current = setInterval(() => {
       setTimer(prev => {
         if (!prev) return null
@@ -278,6 +297,10 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
 
   async function handlePickerSelect(exerciseId: string) {
     if (!plan || !pickerMode) return
+    // Dieselbe Übung zweimal im Plan würde Einstellungen und Vorschläge
+    // doppelt treffen — der Picker blendet sie aus, hier zur Sicherheit nochmal.
+    const isSwapToSelf = pickerMode.type === 'swap' && pickerMode.oldExerciseId === exerciseId
+    if (!isSwapToSelf && planContainsExercise(plan, exerciseId)) { setPickerMode(null); return }
     if (pickerMode.type === 'swap') {
       const { exIdx, oldExerciseId } = pickerMode
       setExercises(prev => prev.map((ex, i) => i === exIdx ? { ...ex, exerciseId } : ex))
@@ -330,8 +353,15 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
 
   async function handleFinish() {
     if (!plan) return
-    const date = new Date().toISOString().slice(0, 10)
-    const einheit: Einheit = createEinheit(plan.id, exercises, date)
+    // Ortszeit, nicht UTC: nach 22 Uhr (MESZ) würde toISOString sonst schon
+    // das Datum von morgen liefern.
+    const now = new Date()
+    const date = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('-')
+    const einheit: Einheit = createEinheit(plan.id, stripEmptySets(exercises), date)
     await indexedDbRepository.saveEinheit(einheit)
     if (timerRef.current) clearInterval(timerRef.current)
     clearSession()
@@ -351,12 +381,31 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
 
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
-  function restLabel(totalSeconds: number): string {
-    if (totalSeconds >= 300) return '≥ 90 % 1RM — Maximalkraft'
-    if (totalSeconds >= 180) return '80–90 % 1RM — Kraft'
-    if (totalSeconds >= 120) return '70–80 % 1RM — Hypertrophie'
-    if (totalSeconds >= 90)  return '60–70 % 1RM — Hypertrophie'
-    return '< 60 % 1RM — Ausdauer'
+  function restLabel(t: TimerState): string {
+    if (t.fromPlan) return `Pause laut Plan · ${fmt(t.restSeconds)} min`
+    if (t.restSeconds >= 300) return 'Richtwert Maximalkraft (1–3 Wdh)'
+    if (t.restSeconds >= 180) return 'Richtwert Kraft (4–7 Wdh)'
+    if (t.restSeconds >= 120) return 'Richtwert Hypertrophie (8–12 Wdh)'
+    if (t.restSeconds >= 90)  return 'Richtwert Hypertrophie (13–20 Wdh)'
+    return 'Richtwert Kraft-Ausdauer (21+ Wdh)'
+  }
+
+  if (planMissing) {
+    return (
+      <div className={styles.screen}>
+        <header className={styles.header}>
+          <button className={styles.cancelButton} onClick={handleCancel}>← Zurück</button>
+          <span className={styles.title}>Plan nicht gefunden</span>
+          <span />
+        </header>
+        <div className={styles.body}>
+          <p style={{ padding: '2rem 1rem', color: 'var(--text-2)', textAlign: 'center' }}>
+            Dieser Plan existiert nicht mehr.<br />
+            Er wurde vermutlich gelöscht.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   if (!plan) return null
@@ -366,6 +415,9 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
       {pickerMode && (
         <ExercisePicker
           exercises={catalog}
+          usedIds={plan.exercises
+            .map(pe => pe.exerciseId)
+            .filter(id => pickerMode.type !== 'swap' || id !== pickerMode.oldExerciseId)}
           onSelect={handlePickerSelect}
           onClose={() => setPickerMode(null)}
         />
@@ -459,7 +511,7 @@ export function TrainingScreen({ planId, resumeSession = false, onFinish, onCanc
         {timer && (
           <div className={styles.timerBanner}>
             <div className={styles.timerHeader}>
-              <span className={styles.timerLabel}>⏱ {timer.exerciseName} · {restLabel(timer.totalSeconds)}</span>
+              <span className={styles.timerLabel}>⏱ {timer.exerciseName} · {restLabel(timer)}</span>
               <span className={`${styles.timerCountdown} ${timer.remaining <= 10 ? styles.urgent : ''}`}>
                 {fmt(timer.remaining)}
               </span>

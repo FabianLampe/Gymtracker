@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { indexedDbRepository } from '../db/indexeddb'
-import type { Einheit, Exercise, Plan } from '../db/types'
+import { sortEinheitenNewestFirst } from '../training/prefill'
+import type { CompletedSet, Einheit, Exercise, Plan } from '../db/types'
 import styles from './HistoryScreen.module.css'
 
 function formatDate(iso: string): string {
@@ -8,9 +9,14 @@ function formatDate(iso: string): string {
   return `${day}.${month}.${year}`
 }
 
-function setsSummary(sets: { reps: number; weightKg: number }[]): string {
+// Gewicht und Wdh sind pro Satz frei (Back-off) — eine Zusammenfassung wie
+// „3 × 60 kg" würde absteigende Sätze verschlucken. Gleiche Sätze werden
+// zusammengefasst, unterschiedliche einzeln gezeigt.
+function setsSummary(sets: CompletedSet[]): string {
   if (sets.length === 0) return '—'
-  return `${sets.length} × ${sets[0].weightKg} kg`
+  const allEqual = sets.every(s => s.reps === sets[0].reps && s.weightKg === sets[0].weightKg)
+  if (allEqual) return `${sets.length} × ${sets[0].reps} × ${sets[0].weightKg} kg`
+  return sets.map(s => `${s.reps}×${s.weightKg}`).join(' · ') + ' kg'
 }
 
 interface Props {
@@ -29,7 +35,7 @@ export function HistoryScreen({ onEditEinheit }: Props) {
       indexedDbRepository.getPlans(),
       indexedDbRepository.getExercises(),
     ]).then(([e, p, c]) => {
-      setEinheiten([...e].sort((a, b) => b.date.localeCompare(a.date)))
+      setEinheiten(sortEinheitenNewestFirst(e))
       setPlans(p)
       setCatalog(c)
     })
@@ -50,7 +56,7 @@ export function HistoryScreen({ onEditEinheit }: Props) {
   }
 
   function exerciseName(id: string) {
-    return catalog.find(e => e.id === id)?.name ?? id
+    return catalog.find(e => e.id === id)?.name ?? 'Gelöschte Übung'
   }
 
   return (
@@ -84,8 +90,8 @@ export function HistoryScreen({ onEditEinheit }: Props) {
               </button>
             </div>
           </div>
-          {einheit.exercises.map(ex => (
-            <div key={ex.exerciseId} className={styles.exerciseRow}>
+          {einheit.exercises.map((ex, exIdx) => (
+            <div key={`${ex.exerciseId}-${exIdx}`} className={styles.exerciseRow}>
               <span className={styles.exerciseRowName}>{exerciseName(ex.exerciseId)}</span>
               <span className={styles.exerciseRowSummary}>{setsSummary(ex.sets)}</span>
             </div>

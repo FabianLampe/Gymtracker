@@ -4,6 +4,7 @@ import {
   removeSetFromTraining,
   reindexRawInputsAfterRemove,
   reindexDoneSetsAfterRemove,
+  stripEmptySets,
 } from '../trainingOps'
 import type { CompletedExercise } from '../../db/types'
 
@@ -107,5 +108,36 @@ describe('reindexDoneSetsAfterRemove', () => {
     const done = new Set(['2-0', '2-1'])
     const result = reindexDoneSetsAfterRemove(done, 0, 0)
     expect(result).toEqual(new Set(['2-0', '2-1']))
+  })
+})
+
+describe('stripEmptySets', () => {
+  it('entfernt Sätze ohne Wiederholungen', () => {
+    const result = stripEmptySets([
+      { exerciseId: 'ex-1', sets: [{ reps: 10, weightKg: 60 }, { reps: 0, weightKg: 0 }] },
+    ])
+    expect(result[0].sets).toEqual([{ reps: 10, weightKg: 60 }])
+  })
+
+  it('behält Sätze mit 0 kg (Körpergewichts-Übung ohne Zusatzgewicht)', () => {
+    const result = stripEmptySets([
+      { exerciseId: 'ex-1', sets: [{ reps: 12, weightKg: 0 }] },
+    ])
+    expect(result[0].sets).toEqual([{ reps: 12, weightKg: 0 }])
+  })
+
+  it('entfernt Übungen, von denen kein Satz übrig bleibt', () => {
+    const result = stripEmptySets([
+      { exerciseId: 'ex-1', sets: [{ reps: 0, weightKg: 50 }] },
+      { exerciseId: 'ex-2', sets: [{ reps: 8, weightKg: 40 }] },
+    ])
+    expect(result).toHaveLength(1)
+    expect(result[0].exerciseId).toBe('ex-2')
+  })
+
+  it('lässt die Eingabe unverändert', () => {
+    const input = [{ exerciseId: 'ex-1', sets: [{ reps: 0, weightKg: 0 }] }]
+    stripEmptySets(input)
+    expect(input[0].sets).toHaveLength(1)
   })
 })
