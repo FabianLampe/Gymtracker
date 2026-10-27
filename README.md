@@ -1,27 +1,21 @@
 # Gymtracker
 
-Offline-fähige iPhone-App (PWA) zum Verfolgen eines selbst erstellten Trainingsplans und der **Progression je Übung**.
+Progressive web app for following a training plan and tracking progression per exercise. Data stays on the device (IndexedDB) and can be exported and imported as JSON.
 
-Kernschleife: Plan folgen → Ist-Werte eintragen (frei abweichend) → Fortschritt je Übung als Graph sehen.
+- Several training plans and an exercise catalogue with custom exercises
+- Logging sessions, with values pre-filled from the last session
+- Weight increase suggestions based on double progression
+- Progression chart per exercise (week, month, year)
 
-## Funktionen
-- Mehrere Trainingspläne als „lebende Listen“, Übungskatalog mit eigenen Übungen
-- Einheiten loggen, Werte aus der letzten Einheit werden vorausgefüllt
-- **Steigerungs-Vorschlag** nach dem Prinzip der doppelten Progression (nicht bindend)
-- Progressions-Graph je Übung (Woche / Monat / Jahr), Einheiten nachträglich korrigieren
-- Daten bleiben lokal auf dem Gerät, Export/Import als JSON
+Built with React, TypeScript, Vite, Dexie, Recharts and vite-plugin-pwa. Tests use Vitest.
 
-## Tech Stack
-React 18 · TypeScript · Vite · Dexie (IndexedDB) · Recharts · vite-plugin-pwa · Vitest
+Design decisions are recorded in [docs/adr](docs/adr), requirements in the [PRD](docs/prd/0001-gymtracker-v1.md) and domain terms in [CONTEXT.md](CONTEXT.md).
 
-Architekturentscheidungen stehen als ADRs in [docs/adr](docs/adr), die Anforderungen im [PRD](docs/prd/0001-gymtracker-v1.md), die Fachbegriffe in [CONTEXT.md](CONTEXT.md).
+## Development
 
-## Entwicklung
-```bash
-npm install
-npm run dev      # Entwicklungsserver
-npm test         # Tests
-npm run build    # Produktionsbuild
 ```
-
-Weiterentwicklung: [mia-gymtracker](https://github.com/FabianLampe/mia-gymtracker) (private).
+npm install
+npm run dev
+npm test
+npm run build
+```
